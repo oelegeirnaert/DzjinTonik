@@ -1,0 +1,26 @@
+[DZJINTONIK]
+;environment: test-uat-prod
+environment = test
+
+asp_session = COPY FROM BROWSER COOKIE
+request_token = "COPY FROM BROWSER COOKIE"
+chrome_path = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
+default_dzjintonik_user_email = the default mail address
+internal_company_id = 1
+program_id =39
+master_program_id =39
+test_domain = https://YOUR_TEST_PREFIX.dzjintonik.eu
+uat_domain = https://YOUR_UAT_PREFIX.dzjintonik.eu
+prod_domain = https://YOUR_PRODUCTION_PREFIX.dzjintonik.eu
+
+[MONGODB]
+server = localhost
+port = 27017
+
+[SQL]
+server = YOUR MS SQL SERVER
+database = YOUR MS SQL DATABASE
+
+[GMAIL]
+client = YOUR CLIENT
+secret = YOUR SECRET
