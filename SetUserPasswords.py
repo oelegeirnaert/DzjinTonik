@@ -34,7 +34,6 @@ def update_user(config, dzjintonik_id):
     if person.send_to_dt():
         config.logger.error("Update success for user %s" %(mailing.FullName))
         mailing.update_success(True)
-        #update_result = db.mailing.insert_one(mailing.__dict__)
         db.mailing.update_one({'Id':mailing.Id}, {'$set':mailing.__dict__}, upsert=True)
     else:
         config.logger.debug("Update failed for user %s" %(person.get_full_name()))
