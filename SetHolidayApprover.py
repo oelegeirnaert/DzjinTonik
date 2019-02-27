@@ -1,6 +1,7 @@
+import sys
+
 from models import *
 from config import ProgramConfig
-import sys
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -73,4 +74,4 @@ def start_update(config, person_to_update, new_holiday_approver_id):
 
 
 my_config = ProgramConfig("SetHollidayApprover")
-start_update(my_config, 26053,154) #155 sonja de beck, 154 hayad, 182 Nick Truyman, 26053 Joke
+start_update(my_config, 26053,154)
