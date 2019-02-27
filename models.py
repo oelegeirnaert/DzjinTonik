@@ -3,6 +3,7 @@ import webbrowser
 import json
 import calendar
 import datetime
+import sys
 
 class DzjinTonikObject(object):
     def __init__(self, config):

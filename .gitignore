@@ -1,3 +1,5 @@
 LOGS/*.log
+QUERIES/*.sql
 config.ini
 credentials.json
+MyInformation
