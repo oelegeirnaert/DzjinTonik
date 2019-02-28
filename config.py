@@ -1,6 +1,8 @@
 import configparser
 import logging
 import time
+import dt_util
+import sys
 
 from pymongo import MongoClient
 
@@ -15,8 +17,6 @@ class ProgramConfig(object):
         self.config = configparser.ConfigParser()
         self.config.read('config.ini')
 
-        #print(config.sections())
-
         #FIRST OF ALL, GET ENVIRONMENT
         self.environment = self.config['DZJINTONIK'].get('environment', 'test')
 
@@ -30,17 +30,19 @@ class ProgramConfig(object):
         self.sql_server = self.config['SQL'].get('server', 'sqldwprtest')
         self.sql_database = self.config['SQL'].get('database', 'AdminApps_PLANNING_INT')
 
+        #LDAP
+        self.ldap_server_name = self.config['LDAP'].get('server_name')
+        self.ldap_domain_name = self.config['LDAP'].get('domain_name ')
+        self.ldap_user_name = self.config['LDAP'].get('user_name')
+        self.ldap_password = self.config['LDAP'].get('password')
+
         #DzjinTonik - https://dzjintonik.eu/
-        self.asp_session = self.config['DZJINTONIK'].get('asp_session', None)
-        self.request_token =  self.config['DZJINTONIK'].get('request_token', 'test')
         self.chrome_path = self.config['DZJINTONIK'].get('chrome_path', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe')
         self.default_dzjintonik_user_email = self.config['DZJINTONIK'].get('default_dzjintonik_user_email', 'dzjintonik@medialaan.be')
         self.internal_company_id = self.config['DZJINTONIK'].get('internal_company_id', 'test')
         self.program_id = self.config['DZJINTONIK'].get('program_id', 'test')
         self.master_program_id  = self.config['DZJINTONIK'].get('master_program_id', 'test')
         self.domain = ''
-
-
 
         if self.continue_in_environment() == False:
             sys.exit()
@@ -53,18 +55,24 @@ class ProgramConfig(object):
         self.person_get = self.domain + '/Person/Get'
         self.person_update = self.domain + '/Person/Update'
         self.set_recup_hours = self.domain + '/PercentageReportPlanBalance/Create'
-        
+
     def set_env_specific_values(self):
         the_env = self.environment.upper()
         if the_env == 'TEST':
             dt_domain = self.config['DZJINTONIK'].get('test_domain')
             my_mongodb = self.mongodb_client.dbDzjinTonikTEST
+            my_asp_session = self.config['DZJINTONIK'].get('asp_session_test', None)
+            my_request_token =  self.config['DZJINTONIK'].get('request_token_test', 'test')
         elif the_env == 'UAT':
             dt_domain = self.config['DZJINTONIK'].get('uat_domain')
             my_mongodb = self.mongodb_client.dbDzjinTonikUAT
+            my_asp_session = self.config['DZJINTONIK'].get('asp_session_uat', None)
+            my_request_token =  self.config['DZJINTONIK'].get('request_token_uat', 'test')
         elif the_env == 'PROD':
             dt_domain = self.config['DZJINTONIK'].get('prod_domain')
             my_mongodb = self.mongodb_client.dbDzjinTonikPROD
+            my_asp_session = self.config['DZJINTONIK'].get('asp_session_prod', None)
+            my_request_token =  self.config['DZJINTONIK'].get('request_token_prod', 'test')
         else:
             print("No valid environment")
             sys.exit()
@@ -72,6 +80,8 @@ class ProgramConfig(object):
         print("THE DOMAIN WILL BE: %s" %dt_domain)
         self.domain = dt_domain
         self.mongodb_database = my_mongodb
+        self.asp_session = my_asp_session
+        self.request_token = my_request_token
 
     def continue_in_environment(self):
 
@@ -83,7 +93,7 @@ class ProgramConfig(object):
 
         if 'PROD' in self.environment.upper():
             print("YOU ARE WORKING IN PRODUCTION ENVIRONMENT!")
-            answer = ask_yes_no_question("Are you sure you'd like to continue in PRODUCTION?")
+            answer = dt_util.ask_yes_no_question("Are you sure you'd like to continue in PRODUCTION?")
             if not answer:
                 print("Stopping actions!")
                 sys.exit()
