@@ -85,7 +85,7 @@ def create_freelancers_from_file(config, from_person_id, a_file):
             db.freelancer.update_one({'Id':freelancer.Id}, {'$set':freelancer.__dict__}, upsert=True)
 
 def update_user_passwords_from_file(config, file):
-    with open("TXT_FILES/password_person_id_to_update.txt") as f:
+    with open(file) as f:
         content = f.readlines()
     # you may also want to remove whitespace characters like `\n` at the end of each line
     content = [x.strip() for x in content]

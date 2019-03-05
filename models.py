@@ -83,6 +83,9 @@ class Person(DzjinTonikObject):
         self.CreateUpdateUserInfo = ''
         self.ExternalId = ''
 
+    def __str__(self):
+        return self.FirstName
+
     def get_contactId(self):
         return self.ContactId
 
