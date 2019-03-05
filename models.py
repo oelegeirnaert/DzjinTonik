@@ -1,9 +1,10 @@
 import requests
-import webbrowser
 import json
 import calendar
 import datetime
 import sys
+
+import dt_util
 
 class DzjinTonikObject(object):
     def __init__(self, config):
@@ -15,21 +16,6 @@ class DzjinTonikObject(object):
     def remove_config(self):
         self.config = None
 
-    def logged_in(self, response, a_config):
-        a_config.logger.info("Checking if you're logged into DT.")
-        if "<title>DT - Login</title>" in response:
-            strMessage = "You need to login into DzjinTonik first... Be sure to set the correct variables on top of this file!"
-            print(strMessage)
-            a_config.logger.error(strMessage)
-            webbrowser.open(a_config.domain)
-            sys.exit()
-            return False
-        elif "<title>" in response:
-            print(response)
-            print("An other error occured... Please read the lines above! SUGGESTION: Is your model correct? Are you sending an ID?")
-            return False
-        return True
-
     def post_json_obj(self, url):
         self.config.logger.info('Update data to url: %s' %(url))
         self.config.logger.info("Data we'll send in post: %s" %self.__dict__)
@@ -40,7 +26,7 @@ class DzjinTonikObject(object):
         self.config = None
 
         r = requests.post(url, cookies=cookies, headers=headers, data=self.__dict__)
-        if self.logged_in(r.text, my_config) and r.status_code == 200:
+        if dt_util.logged_in(r.text, my_config) and r.status_code == 200:
             my_config.logger.debug('Data we got returned: \n %s' %r.text)
             if r.status_code == 200:
                 myjson = json.loads(r.text)
@@ -61,14 +47,14 @@ class DzjinTonikObject(object):
 
         r = requests.post(url, cookies = cookies, headers=headers, data=self.__dict__)
         my_config.logger.debug('Data we got returned: \n %s' %r.text)
-        if self.logged_in(r.text, my_config) and r.status_code == 200:
+        if dt_util.logged_in(r.text, my_config) and r.status_code == 200:
             self.__dict__ = json.loads(r.text)
             self.config = my_config
             return True
         return False
 
 class Person(DzjinTonikObject):
-    def __init__(self, config, id=None):
+    def __init__(self, config=None, id=None):
         super().__init__(config)
         self.Username = ''
         self.Password = ''
@@ -95,6 +81,13 @@ class Person(DzjinTonikObject):
         self.Id = id
         self.MainApplicationRoles = ''
         self.CreateUpdateUserInfo = ''
+        self.ExternalId = ''
+
+    def __str__(self):
+        return self.FirstName
+
+    def get_contactId(self):
+        return self.ContactId
 
     def get_full_name(self):
         return "%s %s (%s)" %(self.FirstName, self.LastName, self.Id)
@@ -111,6 +104,10 @@ class Person(DzjinTonikObject):
         if self.post_json_obj(self.config.person_update):
             return True
         return False
+
+    def from_json(self, json):
+        self.config = None
+        self.__dict__ = json
 
 class Contact(DzjinTonikObject):
     def __init__(self, config, Id=None):

@@ -3,3 +3,6 @@ QUERIES/*.sql
 config.ini
 credentials.json
 MyInformation
+OUTPUT_FILES/*
+TXT_FILES/*
+INPUT_FILES/*
