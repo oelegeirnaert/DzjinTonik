@@ -1,0 +1,23 @@
+{% include "header.html" %}
+<div class="text-center no_results">
+  <i class="fas fa-exclamation-circle"></i>
+
+  <p>
+{{ result_object }}
+{% if temp %}
+  {% include temp %}
+{% endif %}
+</p>
+<div class="text-center try_again">
+  {% include "search_form.html" %}
+</div>
+</div>
+
+<script type="text/javascript">
+  $().ready(
+    console.log($("#search_field").focus())
+  )
+
+
+</script>
+{% include "footer.html" %}

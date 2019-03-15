@@ -1,0 +1,42 @@
+{% include "header.html" %}
+<div class="text-center page-title">
+  <h2 class="">{{ results|length }} Contacts</h2>
+  <span class="gray">Source: {{ domain }}</span>
+</div>
+
+<div class="text-center" style="margin: 10px;">
+<div>Search for a specific contact</div>
+{% include "search_form.html" %}
+</div>
+<!-- {{ results[1] }} -->
+
+<div class="card-columns">
+{% for item in results %}
+
+
+
+  <div class="card">
+    <!-- <img class="card-img-top" src='/static/images/ml_logo.png' alt="Card image cap"> -->
+    <div class="card-body">
+      <h5 class="card-title">{{ item.FullName }}</h5>
+      <p class="card-text">{{ item.CompanyName }} - {{ item.Function }} - {{ item.Mobile }}</p>
+    </div>
+    <div class="card-footer">
+      <small class="text-muted"><a href='{{ domain }}/contact?contactid={{ item.Id }}' target="_blank" class='btn btn-sm btn-primary'>Open in DT</a></small>
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+
+{% endfor %}
+</div>
+
+
+{% include "footer.html" %}

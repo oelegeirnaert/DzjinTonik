@@ -1,0 +1,121 @@
+.content{
+  margin: 20px;
+}
+
+.title{
+  background-color: black;
+  color: white;
+  margin-bottom: 5px;
+}
+
+.page-title{
+  margin-bottom: 10px;
+}
+
+.gray{
+  color: gray;
+}
+
+.try_again {
+    display: inline-block;
+}
+
+img.ml_logo{
+  margin: 80px auto;
+}
+
+.no_results, .to_be_implemented{
+  margin-top: 30vh;
+}
+
+.no_results p, .to_be_implemented p{
+  margin-top: 30px;
+}
+
+.to_be_implemented .sorry{
+  font-weight: bold;
+}
+
+.no_results .fas, .to_be_implemented .fas {
+    font-size: 4em;
+}
+
+.prefix_info {
+    margin: 0px auto;
+    width: 210px;
+}
+
+.page-footer{
+  position: fixed;
+  width: 100%;
+  left:0px;
+  bottom:0px;
+
+}
+
+.long-text{
+  height: 500px;
+  vertical-align: bottom;
+  background-color: red;
+  border: 1px solid black;
+}
+
+.please-try-again{
+  color: gray;
+}
+
+.odd{
+  background-color: #f7f7f7
+}
+
+.sorry-box{
+  padding: 30px;
+  border: 1px solid gray;
+  border-radius: 4px;
+}
+
+.person-info{
+  margin-top: 30px;
+}
+
+.photo img {
+    border-radius: 50%;
+    border: 1px solid black;
+}
+
+.ENV{
+  font-weight: bold;
+  color: white;
+}
+
+.TEST{
+  background-color: green;
+}
+
+.UAT{
+  background-color: orange;
+}
+
+.PROD{
+  display: none;
+}
+
+.person-info .photo{
+  margin-bottom: 20px;
+}
+
+.contact-buttons{
+  margin-top: 30px;
+}
+
+.row{
+  padding: 5px;
+}
+
+.happy .fas{
+  font-size: 3em;
+}
+
+.happy p{
+  margin-top: 20px;
+}

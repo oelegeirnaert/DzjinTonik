@@ -1,0 +1,59 @@
+{% include "header.html" %}
+
+<div class="person-info">
+
+  {% if contact.Photo %}
+  <div class="photo">
+    <img src="static/images/contact_images/{{ contact.Photo }}">
+  </div>
+  {% endif %}
+
+  <div class="col-auto">
+    <label class="sr-only" for="inlineFormInputGroup">ID</label>
+    <div class="input-group mb-2">
+      <div class="input-group-prepend">
+        <div class="input-group-text">ID</div>
+      </div>
+      <input type="text" class="form-control" id="inlineFormInputGroup" placeholder="{{ contact.Id }}">
+    </div>
+  </div>
+
+  <div class="col-auto">
+    <label class="sr-only" for="inlineFormInputGroup">First name</label>
+    <div class="input-group mb-2">
+      <div class="input-group-prepend">
+        <div class="input-group-text">Firstname</div>
+      </div>
+      <input type="text" class="form-control" id="inlineFormInputGroup" placeholder="{{ contact.FirstName }}">
+    </div>
+  </div>
+
+  <div class="col-auto">
+    <label class="sr-only" for="inlineFormInputGroup">Last name</label>
+    <div class="input-group mb-2">
+      <div class="input-group-prepend">
+        <div class="input-group-text">Last name</div>
+      </div>
+      <input type="text" class="form-control" id="inlineFormInputGroup" placeholder="{{ contact.LastName }}">
+    </div>
+  </div>
+
+  <div class="col-auto">
+    <label class="sr-only" for="inlineFormInputGroup">Email</label>
+    <div class="input-group mb-2">
+      <div class="input-group-prepend">
+        <div class="input-group-text">Email</div>
+      </div>
+      <input type="text" class="form-control" id="inlineFormInputGroup" placeholder="{{ contact.Email }}">
+    </div>
+  </div>
+
+<div class="contact-buttons text-center">
+  <a class="btn btn-success" target="_blank" href="{{ domain }}/Contact?ContactId={{ contact.Id }}"><i class="fas fa-glass-cheers"></i> Open in DT</a>
+  <a class="btn btn-success" target="_blank" href="{{ domain }}/Contact?ContactId={{ contact.Id }}#holidayTab"><i class="fas fa-holly-berry"></i> Holidays</a>
+  <a class="btn btn-success" target="_blank" href="{{ domain }}/Contact?ContactId={{ contact.Id }}#planningTab"><i class="fas fa-calendar-day"></i> Planning</a>
+  <a class="btn btn-success" target="_blank" href="{{ domain }}/Contact?ContactId={{ contact.Id }}#socialTab"><i class="fas fa-share-square"></i> HR Social</a>
+</div>
+
+</div>
+{% include "footer.html" %}
