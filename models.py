@@ -1,3 +1,4 @@
+import shutil
 import requests
 import json
 import calendar
@@ -16,7 +17,7 @@ class DzjinTonikObject(object):
     def remove_config(self):
         self.config = None
 
-    def post_json_obj(self, url):
+    def post_json_obj(self, url, data=None):
         self.config.logger.info('Update data to url: %s' %(url))
         self.config.logger.info("Data we'll send in post: %s" %self.__dict__)
 
@@ -25,14 +26,21 @@ class DzjinTonikObject(object):
         headers = self.config.headers
         self.config = None
 
-        r = requests.post(url, cookies=cookies, headers=headers, data=self.__dict__)
+        if data is None:
+            data=self.__dict__
+
+        r = requests.post(url, cookies=cookies, headers=headers, data=data)
         if dt_util.logged_in(r.text, my_config) and r.status_code == 200:
             my_config.logger.debug('Data we got returned: \n %s' %r.text)
             if r.status_code == 200:
                 myjson = json.loads(r.text)
-                self.__dict__ = myjson['Data'][0]
-                self.config = my_config
-                return True
+                if len(myjson['Data']) == 0:
+                    print("No Results...")
+                    return False
+                else:
+                    self.__dict__ = myjson['Data'][0]
+                    self.config = my_config
+                    return True
             else:
                 self.config.logger.error('Cannot post to url %s with data %s ... ERROR: %s' %(url, data, r.text))
                 return False
@@ -50,6 +58,13 @@ class DzjinTonikObject(object):
         if dt_util.logged_in(r.text, my_config) and r.status_code == 200:
             self.__dict__ = json.loads(r.text)
             self.config = my_config
+            return True
+        return False
+
+    def search_in_dt(self, url, data):
+        #self.config.logger("Search for %s" %name)
+        if self.post_json_obj(url, data):
+            print(self.__dict__)
             return True
         return False
 
@@ -96,12 +111,12 @@ class Person(DzjinTonikObject):
         self.Password = password
 
     def get_from_dt(self):
-        if self.get_json_obj(self.config.person_get):
+        if self.get_json_obj(self.config.domain + "/Person/Get"):
             return True
         return False
 
     def send_to_dt(self):
-        if self.post_json_obj(self.config.person_update):
+        if self.post_json_obj(self.config.domain + "/Person/Update"):
             return True
         return False
 
@@ -240,14 +255,26 @@ class Contact(DzjinTonikObject):
         self.UpdateTimestamp = ''
         self.Id = Id
 
+    def download_picture(self):
+        picture_url = "%s/Upload/Download?FileName=%s" %(self.config.domain, self.Photo)
+        store_picture ="%s%s" %(self.config.store_contact_pictures_in, self.Photo)
+        print("STORE PICTURE IN: %s" %store_picture)
+        r = requests.get(picture_url, headers = self.config.headers, cookies = self.config.cookies, stream=True)
+        with open(store_picture, 'wb') as out_file:
+            shutil.copyfileobj(r.raw, out_file)
+        del r
+        print(picture_url)
+
+    def get_link_from_dt(self):
+        return "%s/Contact?contactId=%s" %(self.config.domain, self.Id)
+
     def get_from_dt(self):
-        print(self.config.contact_get)
-        if self.get_json_obj(self.config.contact_get):
+        if self.get_json_obj(self.config.domain + '/Contact/Get'):
             return True
         return False
 
     def send_to_dt(self):
-        if self.post_json_obj(self.config.contact_update):
+        if self.post_json_obj(self.config.domain + "/Contact/Update"):
             return True
         return False
 
@@ -276,6 +303,48 @@ class PlanBalanceGrid(DzjinTonikObject):
         return dt.isoformat()
 
     def send_to_dt(self):
-        if self.post_json_obj(self.config.set_recup_hours):
+        if self.post_json_obj(self.config.domain + '/PercentageReportPlanBalance/Create'):
             return True
         return False
+
+class TimeSheetDataResource(DzjinTonikObject):
+    def __init__(self, config):
+        super().__init__(config)
+        self.sort=""
+        self.group=""
+        self.filter=""
+        self.FromDate=""
+        self.ToDate=""
+        self.PlanningDepartmentId=""
+        self.PlanningDepartmentGroupIds= []
+        self.ProgramId=""
+        self.ProgramMasterId=""
+        self.PlanMode=""
+        self.BookingMode=""
+        self.ResourceIsNull=""
+        self.ResourceId=""
+        self.SchedulerGroupSearch=""
+        self.PageNumber=""
+        self.PageSize=""
+        self.BookingColorScheme=""
+        self.ResourceTypes = []
+        self.ResourceTypes= []
+        self.SpecificPersonId=""
+        self.PostProductionAssets=""
+        self.SpecificAssetId=""
+        self.PlanningItemTitle=""
+        self.PlanningItemVisibility=""
+        self.RequestedById=""
+        self.BookingStatuses = []
+        self.HasOvertime=""
+        self.ActualDiffers=""
+        self.BookingCompanyId=""
+        self.ShowHRInformation=""
+        self.DatesTop=""
+        self.HasBookingFilterApplied=""
+        self.NavigateView=""
+        self.TypeNotEqual=""
+        self.EnableEBookingForActiveIndividuals=""
+        self.EBookingContractStatus=""
+        self.Page=""
+        self.SearchTextOverview=""

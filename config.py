@@ -43,6 +43,7 @@ class ProgramConfig(object):
         self.program_id = self.config['DZJINTONIK'].get('program_id', 'test')
         self.master_program_id  = self.config['DZJINTONIK'].get('master_program_id', 'test')
         self.domain = ''
+        self.store_contact_pictures_in = self.config['DZJINTONIK'].get('store_contact_pictures_in', '')
 
         if self.continue_in_environment() == False:
             sys.exit()
@@ -50,11 +51,13 @@ class ProgramConfig(object):
         self.set_env_specific_values()
         self.headers = {'Accept': 'application/json','Content-Type': 'application/x-www-form-urlencoded'}
         self.cookies = {'InternalCompanyId': '1', 'ASP.NET_SessionId': self.asp_session, '__RequestVerificationToken': self.request_token, 'ProgramId':''}
-        self.contact_get = self.domain + '/Contact/Get'
-        self.contact_update = self.domain + '/Contact/Update'
-        self.person_get = self.domain + '/Person/Get'
-        self.person_update = self.domain + '/Person/Update'
-        self.set_recup_hours = self.domain + '/PercentageReportPlanBalance/Create'
+
+        # Now in models
+        #self.contact_get = self.domain + '/Contact/Get'
+        #self.contact_update = self.domain + '/Contact/Update'
+        #self.person_get = self.domain + '/Person/Get'
+        #self.person_update = self.domain + '/Person/Update'
+        #self.set_recup_hours = self.domain + '/PercentageReportPlanBalance/Create'
 
     def set_env_specific_values(self):
         the_env = self.environment.upper()
