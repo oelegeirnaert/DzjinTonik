@@ -1,0 +1,24 @@
+{% include "header.html" %}
+
+<div class="person-info">
+<div class="col-auto">
+  <label class="sr-only" for="inlineFormInputGroup">First name</label>
+  <div class="input-group mb-2">
+    <div class="input-group-prepend">
+      <div class="input-group-text">Firstname</div>
+    </div>
+    <input type="text" class="form-control" id="inlineFormInputGroup" placeholder="{{ person.FirstName }}">
+  </div>
+</div>
+
+<div class="col-auto">
+  <label class="sr-only" for="inlineFormInputGroup">Last name</label>
+  <div class="input-group mb-2">
+    <div class="input-group-prepend">
+      <div class="input-group-text">Last name</div>
+    </div>
+    <input type="text" class="form-control" id="inlineFormInputGroup" placeholder="{{ person.LastName }}">
+  </div>
+</div>
+</div>
+{% include "footer.html" %}

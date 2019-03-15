@@ -1,5 +1,36 @@
 {% include "header.html" %}
-firstname: {{ user.FirstName }}
-lastname: {{ user.LastName }}
-username: {{ user.Username }}
+
+<form>
+  <div class="row">
+    <div class="col">
+      <div class="form-group">
+        <label for="input-username">Username</label>
+        <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="{{ user.Username }}">
+        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="form-group">
+        <label for="input-firstname">FirstName</label>
+        <input type="password" class="form-control" id="input-firstname" placeholder="{{ user.FirstName }}">
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="form-group">
+        <label for="input-firstname">Lastname</label>
+        <input type="password" class="form-control" id="input-firstname" placeholder="{{ user.LastName }}">
+      </div>
+    </div>
+
+  </div>
+
+  <div class="form-check">
+    <input type="checkbox" class="form-check-input" id="exampleCheck1">
+    <label class="form-check-label" for="exampleCheck1">Check me out</label>
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
 {% include "footer.html" %}

@@ -1,0 +1,147 @@
+<!--
+self.Actual_Start_DateTime = row['Actual_Start_DateTime']
+self.Update_Timestamp = row['Update_DateTime']
+self.Planning_Department_Name = row['Planning_Department_Name']
+self.Planning_Department_Group_Name = row['Planning_Department_Group_Name']
+self.Contact_Full_Name = row['Contact_Full_Name']
+self.Booking_ID = row['Booking_Id']
+-->
+
+
+{% include "header.html" %}
+<div class="text-center page-title">
+  <h2 class=""><span id="numberOfShifts">test</span> Modified Shifts After Payroll</h2>
+  <span class="gray">Source: {{ source }}</span>
+</div>
+
+
+
+
+<div class="modified-shifts">
+  <div class="title row">
+    <div class="col">
+      Actual Start
+    </div>
+
+    <div class="col">
+      Updated On
+    </div>
+
+    <div class="col">
+      Person
+    </div>
+
+    <div class="col">
+      Departement Group
+    </div>
+
+    <div class="col">
+      Departement
+    </div>
+
+    <div class="col">
+      Action
+    </div>
+
+  </div>
+  {% for shift in shifts %}
+
+  <div class="shift row {{ loop.cycle('odd', 'even')}} {{ shift.Booking_ID }}">
+    <div class="col">
+      {{ shift.Actual_Start_DateTime }}
+    </div>
+
+    <div class="col">
+      {{ shift.Update_DateTime }}
+    </div>
+
+
+    <div class="col">
+      {{ shift.Contact_Full_Name }}
+    </div>
+
+    <div class="col">
+      {{ shift.Planning_Department_Name }}
+    </div>
+
+    <div class="col">
+      {{ shift.Planning_Department_Group_Name }}
+    </div>
+
+    <div class="col">
+      <a id="details{{ shift.Booking_ID }}" href="" class="btn btn-sm btn-success show_details">Show Details</a>
+      <a id="{{ shift.Booking_ID }}" href="" class="btn btn-sm btn-primary remove_shift">Modified</a>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+
+  {% endfor %}
+</div>
+
+  {% include "happy.html" %}
+
+
+
+  <script type="text/javascript">
+    function no_work(){
+      $("#numberOfShifts").html($(".shift.row").length)
+      if($(".shift.row").length == 0)
+      {
+        $(".happy").fadeIn("slow");
+        $(".modified-shifts").fadeOut("slow");
+      }
+      else {
+        $(".happy").hide();
+      }
+    }
+    console.log($(".shift.row"))
+    number_of_modified_shifts = $(".shift.row").length
+    no_work()
+
+    $("#numberOfShifts").html(number_of_modified_shifts)
+
+    $('.remove_shift').click(function () {
+      event.preventDefault();
+
+      $('.' + this.id).fadeOut("slow").remove()
+      $.ajax({
+        dataType: "json",
+        url: '/api/remove_modified_shift?id='+ this.id
+      });
+
+no_work()
+
+
+
+
+    });
+
+
+    $('.show_details').click(function () {
+      event.preventDefault();
+      console.log("Show details for " + this.id)
+      $('.row' + this.id).append("test");
+    });
+
+
+  </script>
+
+
+
+
+
+
+
+
+  {% include "footer.html" %}
