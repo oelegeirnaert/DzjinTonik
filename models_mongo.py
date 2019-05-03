@@ -40,3 +40,17 @@ class ContactApprover(object):
 
     def update_success(self, status):
         self.UpdateSuccess = status
+
+class MongoHRGroup(object):
+    def __init__(self, item):
+        self.ContactId = item[0]
+        self.FullName = ""
+        self.Blox = item[1]
+        self.Is_Journalist = item[2]
+        self.Is_TV = item[3]
+        self.Is_Radio = item[4]
+        self.Book_Payroll = item[5]
+        self.Book_Only_Holidays = item[6]
+        self.Explicit_Supplements = item[7]
+        self.Apply_10_Percent = item[8]
+        self.CreatedOn = datetime.datetime.now()

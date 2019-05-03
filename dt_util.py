@@ -1,5 +1,7 @@
 import webbrowser
 import sys
+import pymssql
+import datetime
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -42,3 +44,31 @@ def logged_in(response, a_config):
         print("Your output is html, which is not nice!")
         return False
     return True
+
+def get_sql_list_from_file(config, sql_file):
+        conn = pymssql.connect(server = config.sql_server, database = config.sql_database)
+        cursor = conn.cursor(as_dict=True)
+
+        message = "Trying to connect to %s/%s" %(config.sql_server, config.sql_database)
+        print(message)
+
+        strQry = None
+
+        try:
+            with open(sql_file, 'r') as myfile:
+                strQry = myfile.read().replace('\n', '')
+        except Exception as e:
+            print("Sorry, I cannot read your SQL file: %s!" %file)
+
+        print(strQry)
+
+        if strQry is not None:
+            cursor.execute(strQry)
+            return cursor.fetchall()
+
+        return None
+
+def get_date_from_string(datestring):
+    if datestring is not None:
+        return datetime.datetime.strptime(datestring, '%Y-%m-%dT%H:%M:%S')
+    return datestring

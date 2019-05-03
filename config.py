@@ -7,7 +7,7 @@ import sys
 from pymongo import MongoClient
 
 class ProgramConfig(object):
-    def __init__(self, logfileName):
+    def __init__(self, logfileName, environment=None):
 
         today = time.strftime("%Y-%m-%d")
         log_filename = "Logs/%s-%s.log" %(logfileName, today)
@@ -18,7 +18,10 @@ class ProgramConfig(object):
         self.config.read('config.ini')
 
         #FIRST OF ALL, GET ENVIRONMENT
-        self.environment = self.config['DZJINTONIK'].get('environment', 'test')
+        if environment is None:
+            self.environment = self.config['DZJINTONIK'].get('environment', 'test')
+        else:
+            self.environment = environment
 
         #MongoDB
         self.mongodb_server = self.config['MONGODB'].get('server', 'localhost')
@@ -27,7 +30,6 @@ class ProgramConfig(object):
         self.mongodb_database = None
 
         #SQL
-        self.sql_server = self.config['SQL'].get('server', 'sqldwprtest')
         self.sql_database = self.config['SQL'].get('database', 'AdminApps_PLANNING_INT')
 
         #LDAP
@@ -43,6 +45,8 @@ class ProgramConfig(object):
         self.program_id = self.config['DZJINTONIK'].get('program_id', 'test')
         self.master_program_id  = self.config['DZJINTONIK'].get('master_program_id', 'test')
         self.domain = ''
+        self.api_domain = ''
+        self.api_authorization = ''
         self.store_contact_pictures_in = self.config['DZJINTONIK'].get('store_contact_pictures_in', '')
 
         if self.continue_in_environment() == False:
@@ -63,28 +67,48 @@ class ProgramConfig(object):
         the_env = self.environment.upper()
         if the_env == 'TEST':
             dt_domain = self.config['DZJINTONIK'].get('test_domain')
+            my_api_domain = self.config['DZJINTONIK'].get('api_test_domain')
+            my_api_authorization = self.config['DZJINTONIK'].get('api_test_authorization')
             my_mongodb = self.mongodb_client.dbDzjinTonikTEST
             my_asp_session = self.config['DZJINTONIK'].get('asp_session_test', None)
             my_request_token =  self.config['DZJINTONIK'].get('request_token_test', 'test')
+            my_sql_server = self.config['SQL'].get('server_test')
+
         elif the_env == 'UAT':
             dt_domain = self.config['DZJINTONIK'].get('uat_domain')
+            my_api_domain = self.config['DZJINTONIK'].get('api_uat_domain')
+            my_api_authorization = self.config['DZJINTONIK'].get('api_uat_authorization')
             my_mongodb = self.mongodb_client.dbDzjinTonikUAT
             my_asp_session = self.config['DZJINTONIK'].get('asp_session_uat', None)
             my_request_token =  self.config['DZJINTONIK'].get('request_token_uat', 'test')
+            my_sql_server = self.config['SQL'].get('server_uat')
         elif the_env == 'PROD':
             dt_domain = self.config['DZJINTONIK'].get('prod_domain')
+            my_api_domain = self.config['DZJINTONIK'].get('api_prod_domain')
+            my_api_authorization = self.config['DZJINTONIK'].get('api_prod_authorization')
             my_mongodb = self.mongodb_client.dbDzjinTonikPROD
             my_asp_session = self.config['DZJINTONIK'].get('asp_session_prod', None)
             my_request_token =  self.config['DZJINTONIK'].get('request_token_prod', 'test')
+            my_sql_server = self.config['SQL'].get('server_prod')
         else:
             print("No valid environment")
             sys.exit()
 
+
+
+        print("THE API DOMAIN WILL BE: %s" %my_api_domain)
+        self.api_domain = my_api_domain
+
+        print("The API AUTH: %s" %my_api_authorization)
+        self.api_authorization = my_api_authorization
+
         print("THE DOMAIN WILL BE: %s" %dt_domain)
         self.domain = dt_domain
+
         self.mongodb_database = my_mongodb
         self.asp_session = my_asp_session
         self.request_token = my_request_token
+        self.sql_server = my_sql_server
 
     def continue_in_environment(self):
 
