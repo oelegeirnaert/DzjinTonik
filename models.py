@@ -11,6 +11,9 @@ class DzjinTonikObject(object):
     def __init__(self, config):
         self.config = config
 
+    def str_to_class(str):
+        return getattr(sys.modules[__name__], str)
+
     def reset_config(self, config):
         self.config = config
 
@@ -19,17 +22,22 @@ class DzjinTonikObject(object):
 
     def post_json_obj(self, url, data=None):
         self.config.logger.info('Update data to url: %s' %(url))
-        self.config.logger.info("Data we'll send in post: %s" %self.__dict__)
+
 
         my_config = self.config
         cookies = self.config.cookies
         headers = self.config.headers
-        self.config = None
+
 
         if data is None:
             data=self.__dict__
 
+        print("Data we'll send in post: %s" %data)
+        self.config.logger.info("Data we'll send in post: %s" %data)
+
+        self.config = None
         r = requests.post(url, cookies=cookies, headers=headers, data=data)
+        print(r.text)
         if dt_util.logged_in(r.text, my_config) and r.status_code == 200:
             my_config.logger.debug('Data we got returned: \n %s' %r.text)
             if r.status_code == 200:
@@ -45,7 +53,7 @@ class DzjinTonikObject(object):
                 self.config.logger.error('Cannot post to url %s with data %s ... ERROR: %s' %(url, data, r.text))
                 return False
 
-    def get_json_obj(self, url):
+    def get_json_obj(self, url, data=None):
         self.config.logger.debug('Get data from: %s' %(url))
 
         my_config = self.config #before we get the data, we'll store the config.
@@ -53,9 +61,14 @@ class DzjinTonikObject(object):
         headers = self.config.headers
         self.config = None
 
-        r = requests.post(url, cookies = cookies, headers=headers, data=self.__dict__)
+        if data is None:
+            data=self.__dict__
+
+        r = requests.post(url, cookies = cookies, headers=headers, data=data)
         my_config.logger.debug('Data we got returned: \n %s' %r.text)
         if dt_util.logged_in(r.text, my_config) and r.status_code == 200:
+            print(r.text)
+            #self.__dict__ = json.loads(r.text)['Data'][0]
             self.__dict__ = json.loads(r.text)
             self.config = my_config
             return True
@@ -99,7 +112,7 @@ class Person(DzjinTonikObject):
         self.ExternalId = ''
 
     def __str__(self):
-        return self.FirstName
+        return "%s %s" %(self.FirstName, self.LastName)
 
     def get_contactId(self):
         return self.ContactId
@@ -284,6 +297,9 @@ class Contact(DzjinTonikObject):
     def get_link(self):
         return "%s/Contact?ContactId=%s" %(self.config.domain, self.Id)
 
+    def __str__(self):
+        return self.FullName
+
 
 class PlanBalanceGrid(DzjinTonikObject):
 
@@ -306,6 +322,45 @@ class PlanBalanceGrid(DzjinTonikObject):
         if self.post_json_obj(self.config.domain + '/PercentageReportPlanBalance/Create'):
             return True
         return False
+
+class HRGroup(DzjinTonikObject):
+
+    def __init__(self, config , id=None):
+        super().__init__(config)
+        self.config.logger.info("Currently handling the groups for hrgroupid: %s" %id)
+        self.ContactId = ''
+        self.ContactFirstName = ''
+        self.ContactLastName = ''
+        self.GroupId = ''
+        self.GroupName = ''
+        self.GroupType = ''
+        self.From = ''
+        self.To = ''
+        self.ContactFullName = ''
+        self.CreateUser = ''
+        self.CreateTimestamp = datetime.datetime.now()
+        self.UpdateUser = ''
+        self.UpdateTimestamp = datetime.datetime.now()
+        self.Id = id
+
+    def delete_from_dt(self):
+        if self.post_json_obj(self.config.domain + '/ContactPlanningGroup/Delete', {'Id':self.Id}):
+            return True
+        return False
+
+    def send_to_dt(self):
+        if self.post_json_obj(self.config.domain + '/ContactPlanningGroup/Create'):
+            return True
+        return False
+
+    def get_from_dt(self):
+        data = {'GroupType':4, 'Id':self.Id}
+        if self.get_json_obj(self.config.domain + '/ContactPlanningGroup/Read', data=data):
+            return True
+        return False
+
+    def __str__(self):
+        return "- %s is in HR Group %s" %(self.ContactFullName, self.GroupName)
 
 class TimeSheetDataResource(DzjinTonikObject):
     def __init__(self, config):
@@ -348,3 +403,140 @@ class TimeSheetDataResource(DzjinTonikObject):
         self.EBookingContractStatus=""
         self.Page=""
         self.SearchTextOverview=""
+
+class Nominal(DzjinTonikObject):
+    def __init__(self, config, contactid = None, nominalid=None, **kwargs):
+        super().__init__(config)
+        if contactid is None:
+            self.ContactId =  ''
+        else:
+            self.ContactId = contactid
+
+        self.NominalSchemeType =  ''
+        self.FullTimeRatio =  ''
+        self.IsExecutive =  ''
+        self.ContractHours =  ''
+        self.DateFrom =  ''
+        self.DateTo =  ''
+        self.Remarks =  ''
+        self.Suspension =  ''
+        self.SuspensionTypeId =  ''
+        self.SuspensionTypeName =  ''
+        self.SuspensionHours =  ''
+        self.DaysPerWeek =  ''
+        self.DailyNominal =  ''
+        self.HolidayNominal =  ''
+        self.MondayNominal =  ''
+        self.TuesdayNominal =  ''
+        self.WednesdayNominal =  ''
+        self.ThursdayNominal =  ''
+        self.FridayNominal =  ''
+        self.SaturdayNominal =  ''
+        self.SundayNominal =  ''
+        self.ContactType =  ''
+        self.DefaultInternalCompanyId =  ''
+        self.DefaultRoleId =  ''
+        self.CreateUser =  ''
+        self.CreateTimestamp =  ''
+        self.UpdateUser =  ''
+        self.UpdateTimestamp =  ''
+        if nominalid is not None:
+            self.Id = nominalid
+        else:
+            self.Id =  ''
+
+    def get_from_dt(self):
+        data = {'id':self.Id}
+        if self.get_json_obj(self.config.domain + '/Nominal/Read', data=data):
+            return True
+        return False
+
+    def send_to_dt(self):
+        if self.post_json_obj(self.config.domain + '/Nominal/Update'):
+            return True
+        return False
+
+class CategoryValue(DzjinTonikObject):
+    def __init__(self, config, id = None, **kwargs):
+        super().__init__(config)
+        self.Sequence = ''
+        self.ParentId = ''
+        self.CostPerDay = ''
+        self.CostType = ''
+        self.Pieces = ''
+        self.PlanningItemId = ''
+        self.LinkedPlanningItemId = ''
+        self.PlanningItemType = ''
+        self.PlanningItemVisibility = ''
+        self.Title = ''
+        self.CategoryId = ''
+        self.CategoryName = ''
+        self.ResourceId = ''
+        self.ResourceName = ''
+        self.ResourceHasToConfirmPlanning = ''
+        self.CategoryTypeName = ''
+        self.CategoryTypeId = ''
+        self.CategorySystemImpact = ''
+        self.CategoryLockPastAbsences = ''
+        self.Val = ''
+        self.Confirmed = ''
+        self.IsEmployee = ''
+        self.ProgramId = ''
+        self.ProgramName = ''
+        self.Date = ''
+        self.ToDate = ''
+        self.ShiftId = ''
+        self.DepartmentId = ''
+        self.DepartmentName = ''
+        self.DepartmentGroupId = ''
+        self.DepartmentGroupName = ''
+        self.CompanyId = ''
+        self.CompanyName = ''
+        self.Kilometers = ''
+        self.StartTime = ''
+        self.EndTime = ''
+        self.BreakTime = ''
+        self.ActualStart = ''
+        self.ActualEnd = ''
+        self.ActualBreak = ''
+        self.Overtime = ''
+        self.ActualWorkingTime = ''
+        self.PlannedWorkingTime = ''
+        self.Log = ''
+        self.NeedsEmailConfirmation = ''
+        self.IncludeInActuals = ''
+        self.Revenue = ''
+        self.CostCenterId = ''
+        self.BusinessUnitId = ''
+        self.InternalCompanyId = ''
+        self.TotalCost = ''
+        self.ExternalCode = ''
+        self.ResourceContactId = ''
+        self.ResourceAssetId = ''
+        self.ResourceImage = ''
+        self.CategoryTypeText = ''
+        self.DetailText = ''
+        self.HasRights = ''
+        self.IsActive = ''
+        self.EBookingContractId = ''
+        self.EBookingContractStatus = ''
+        self.CreateUser = ''
+        self.CreateTimestamp = ''
+        self.UpdateUser = ''
+        self.UpdateTimestamp = ''
+        self.Id = id
+        self.ResourceImageUrl = ''
+        self.EBookingContractStatusIconClass = ''
+        self.EBookingContractUrl = ''
+        self.EbookingStatusTitle = ''
+
+    def get_from_dt(self):
+        data = {'id':self.Id}
+        if self.get_json_obj(self.config.domain + '/CategoryValue/Get', data=data):
+            return True
+        return False
+
+    def send_to_dt(self):
+            if self.post_json_obj(self.config.domain + '/CategoryValue/Update'):
+                return True
+            return False
