@@ -13,10 +13,8 @@ def str2bool(v):
 
 def ask_yes_no_question(question):
     answer = input('%s (y/n) ' %question)
-    if str2bool(answer):
-        return True
-    return False
-
+    return str2bool(answer)
+    
 def check_if_json(str):
     if "<html>" in str:
         print(str)
