@@ -361,8 +361,6 @@ def update_user_password_from_departement_group_via_sql(config, sqlfile, file):
     r = requests.post(my_get_person_list_endpoint, headers=config.headers, cookies=config.cookies)
     json_result = json.loads(r.text)
 
-
-
     for current_person_item in json_result['Data']:
         current_person = Person(config=config, id=None)
         current_person.__dict__ = current_person_item
@@ -384,8 +382,6 @@ def update_user_password_from_departement_group_via_sql(config, sqlfile, file):
             config.logger.error("Update success for user %s" %(mailing.FullName))
             mailing.update_success(True)
             db.mailing2.update_one({'Id':mailing.Id}, {'$set':mailing.__dict__}, upsert=True)
-
-
 
 def SetExecutivesFromFileViaAPI(config, file):
     my_list = get_list_from_file(file, separator=None)
@@ -492,6 +488,35 @@ def UpdateShifts(config = None, file = None, minutes_to_add=None):
 
         #sys.exit()
 
+def update_shift_with_planningdepartementgroup(config = None, sqlfile = None):
+    my_list = dt_util.get_sql_list_from_file(config, sqlfile)
+    api_end_point = "%s%s" %(config.api_domain, "planningitem")
+    my_headers = {'Authorization': config.api_authorization}
+    current_pi = Api_PlanningItem()
+    for id in my_list:
+
+        my_params = {'id': id['id']}
+        pdgid = id['pdgid']
+        r = requests.get(api_end_point, headers = my_headers, params=my_params)
+        current_pi.__dict__ = json.loads(r.text)
+        print(current_pi.__dict__)
+        current_pi.Visibility = 1
+        current_pi.PlanningDepartmentGroupId = pdgid
+        print(current_pi.__dict__)
+        #sys.exit()
+        postback_end_point = "%s/%s" %(api_end_point, current_pi.Id)
+        print(postback_end_point)
+        #sys.exit()
+        postback = requests.put(postback_end_point, data=current_pi.__dict__, headers= my_headers)
+        if postback.status_code == 200:
+            print("Updated")
+        else:
+            print("ERROR")
+            print(postback.text)
+
+        #sys.exit()
+        #r = requests.post(api_end_point, data=current_pi.__dict__, params = my_params)
+
 
 
 
@@ -509,11 +534,12 @@ def UpdateShifts(config = None, file = None, minutes_to_add=None):
 #get_all_contacts_and_store_in_file(my_config,"OUTPUT_FILES/dt_contacts.txt")
 #get_all_holiday_approvers(my_config, "OUTPUT_FILES/holiday_approvers.txt")
 #update_contacts_with_approver_from_file(my_config, "INPUT_FILES/contacts_with_approver.txt")
-my_config = ProgramConfig("BatchReset20190502Prod", "Prod")
+my_config = ProgramConfig("UpdateShift20190506", "prod")
 #SetHRGroupsForContactsFromFile(my_config, "INPUT_FILES/set_hr_groups_20190329.csv" )
 #SetCompanyFromFile(my_config, "QUERIES/set_company.sql")
 #Delete_Old_BloxNumbers(my_config, "QUERIES/remove_old_blox.sql")
 #SetExecutivesFromFile(my_config, "INPUT_FILES/is_executive.csv")
 #UpdateShifts(my_config, "INPUT_FILES/update_shifts_with_6min.txt", 6)
 #SetExecutivesFromFileViaAPI(my_config, "INPUT_FILES/is_executive20190430.csv")
-update_user_password_from_departement_group_via_api(my_config, "QUERIES/reset_password_nieuwsdienst.sql", "TXT_FILES/password_person_id_to_update.txt")
+#update_user_password_from_departement_group_via_api(my_config, "QUERIES/reset_password_nieuwsdienst.sql", "TXT_FILES/password_person_id_to_update.txt")
+#update_shift_with_planningdepartementgroup(my_config, "QUERIES/update_nieuws_shifts.sql")
