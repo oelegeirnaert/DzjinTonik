@@ -72,3 +72,67 @@ class Api_PlanningItem():
         self.UpdateUser = ''
         self.UpdateTimestamp = ''
         self.Id = ''
+
+    def __str__(self):
+        return str(self.Id)
+
+class Api_BookingItem():
+    def __init__(self):
+        self.ExternalId=''
+        self.PlanningItemId=''
+        self.CategoryTypeId=''
+        self.RoleId=''
+        self.ResourceId=''
+        self.CostPerDay=''
+        self.BookingStatus=''
+        self.Sequence=''
+        self.Pieces=''
+        self.Description=''
+        self.StartTime=''
+        self.EndTime=''
+        self.BreakTime=''
+        self.ActualStart=''
+        self.ActualEnd=''
+        self.ActualBreak=''
+        self.CompanyId=''
+        self.Kilometers=''
+        self.InitialPlannedFrom=''
+        self.InitialPlannedTo=''
+        self.InitialBreakTime=''
+        self.Revenue=''
+        self.IncludeInActuals=''
+        self.CostCenterId=''
+        self.BusinessUnitId=''
+        self.InternalCompanyId=''
+        self.Overtime=''
+        self.Duration=''
+        self.CreateUser=''
+        self.CreateTimestamp=''
+        self.UpdateUser=''
+        self.UpdateTimestamp=''
+        self.Id=''
+
+class Api_Asset():
+    def __init__(self):
+        self.ExternalI=''
+        self.CostCenterId=''
+        self.BusinessUnitId=''
+        self.Name=''
+        self.Planned=''
+        self.InternalCompanyId=''
+        self.IsInactive=''
+        self.Cost=''
+        self.ResourceId=''
+        self.RoleId=''
+        self.PlanningDepartmentGroupIds=''
+        self.PlanningGroupIds=''
+        self.Id=''
+
+class Api_Shift():
+    def __init__(self):
+        self.ExternalId=''
+        self.Name=''
+        self.StartTime=''
+        self.EndTime=''
+        self.Break=''
+        self.Id=''
