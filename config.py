@@ -44,6 +44,7 @@ class ProgramConfig(object):
         self.ldap_domain_name = self.config['LDAP'].get('domain_name ')
         self.ldap_user_name = self.config['LDAP'].get('user_name')
         self.ldap_password = self.config['LDAP'].get('password')
+        self.ldap_dsn = self.config['LDAP'].get('ldap_dsn')
 
         #DzjinTonik - https://dzjintonik.eu/
         self.chrome_path = self.config['DZJINTONIK'].get('chrome_path', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe')
