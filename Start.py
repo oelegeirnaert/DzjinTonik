@@ -846,7 +846,9 @@ def change_planningitems_for_production(config, from_production_id, to_productio
     print("%s items were changed..." %len(list_to_change))
 
 def ChangeHolidays(config, input_file):
-    pass
+    a_holiday = Api_Holiday()
+    a_holiday.Id = 25341
+    a_holiday.get_by_id(config)
 
 #my_config = ProgramConfig("SetHrGroup_WithTV")
 #x = get_list_from_file("INPUT_FILES/contacts_with_approver.txt", separator=";")
@@ -860,7 +862,7 @@ def ChangeHolidays(config, input_file):
 #get_all_contacts_and_store_in_file(my_config,"OUTPUT_FILES/dt_contacts.txt")
 #get_all_holiday_approvers(my_config, "OUTPUT_FILES/holiday_approvers.txt")
 #update_contacts_with_approver_from_file(my_config, "INPUT_FILES/contacts_with_approver.txt")
-my_config = ProgramConfig("ChangeProductions", "prod", logging.DEBUG, True)
+my_config = ProgramConfig("ChangeProductions", "test", logging.DEBUG, True)
 #SetHRGroupsForContactsFromFile(my_config, "INPUT_FILES/set_hr_groups_20190329.csv" )
 #SetCompanyFromFile(my_config, "QUERIES/set_company.sql")
 #Delete_Old_BloxNumbers(my_config, "QUERIES/remove_old_blox.sql")

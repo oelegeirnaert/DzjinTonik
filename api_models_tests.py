@@ -24,8 +24,9 @@ def test_get_holiday_by_nonexisting_id():
 
 def test_get_holiday_by_id():
     holiday, my_config = init_holiday()
-    holiday = holiday.get_by_id(my_config)
+    holiday.get_by_id(my_config)
     assert holiday.Amount is not None
+    assert holiday.Amount != ''
 
 def test_update_holiday_by_id():
     holiday, my_config = init_holiday()
@@ -58,7 +59,7 @@ def test_create_holiday_success():
     assert holiday.Id is not None
 
 #test_get_holiday_by_id_fail()
-#test_get_holiday_by_id()
+test_get_holiday_by_id()
 #test_update_holiday_by_id()
 #test_create_holiday_with_id()
 #test_create_holiday_without_id()
@@ -104,4 +105,23 @@ def test_get_nominal_by_id():
     assert nominal.Nominal is not None
     assert nominal.Nominal != ''
 
-test_get_nominal_by_id()
+#test_get_nominal_by_id()
+
+
+'''
+PERSON TESTS
+'''
+def init_person():
+    my_config = ProgramConfig("Test_Person_API", environment="test", loglevel = logging.DEBUG, show_log = True)
+    person = Api_Person()
+    person.Id = 1
+    return person, my_config
+
+def test_get_person_by_id():
+    person, my_config = init_person()
+    person.get_by_id(my_config)
+    print(person.FirstName)
+    assert person.FirstName is not None
+    assert person.FirstName != ''
+
+test_get_person_by_id()
