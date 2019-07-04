@@ -92,6 +92,7 @@ class Api_Nominal(Api_Abstract_Model):
         self.Id = ""
 
 class Api_Person(Api_Abstract_Model):
+    endpoint = 'person'
     def __init__(self):
         self.ExternalI= ''
         self.InternalCompanyId= ''
@@ -121,6 +122,7 @@ class Api_Person(Api_Abstract_Model):
         self.Id= ''
 
 class Api_PlanningItem(Api_Abstract_Model):
+    endpoint = 'planningitem'
     def __init__(self):
         self.ExternalId = ''
         self.PlanningDepartmentId = ''
