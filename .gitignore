@@ -7,4 +7,4 @@ OUTPUT_FILES/*
 TXT_FILES/*
 INPUT_FILES/*
 static/images/contact_images/*
-__pycache__/*
+__pycache__*
