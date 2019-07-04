@@ -1,8 +1,81 @@
 import requests
 import json
+
 from config import ProgramConfig
 
-class Api_Nominal():
+class IdRequired(Exception):
+    pass
+
+class EndpointRequired(Exception):
+    pass
+
+class MethodException(Exception):
+    pass
+
+class RequestException(Exception):
+    pass
+
+class IdMustBeNull(Exception):
+    pass
+
+class ItemDoesNotExist(Exception):
+    pass
+
+class Api_Abstract_Model():
+    def do_request(self, action, config):
+
+        if self.endpoint is None:
+            return EndpointRequired("Please provide an endpoint")
+
+        request_endpoint = "%s%s" %(config.api_domain, self.endpoint)
+
+        if ("GET" in action.upper() or "PUT" in action.upper()) and self.Id is None:
+            return IdRequired("Please provide an ID for your %s-object..." %type(self).__name__)
+
+        params = {
+            'id': self.Id
+        }
+
+        config.logger.debug("%s action to: %s" %(action, request_endpoint))
+
+        if action.upper() == 'GET':
+            r = requests.get(request_endpoint, params=params, headers=config.api_headers)
+        elif action.upper() == 'PUT':
+            config.logger.debug(self.__dict__)
+            r = requests.put(request_endpoint, params=params, headers=config.api_headers, data=self.__dict__)
+        elif action.upper() == 'POST':
+            config.logger.debug(self.__dict__)
+            r = requests.post(request_endpoint, headers=config.api_headers, data=self.__dict__)
+        else:
+            return MethodException("Please choose a right method...")
+
+        config.logger.debug("STATUSCODE: %s" %r.status_code)
+
+        if r.status_code == 200 or r.status_code == 201 :
+            self.__dict__ = json.loads(r.text)
+            config.logger.debug(self.__dict__)
+            return self
+
+        if r.status_code == 404:
+            return ItemDoesNotExist("The item with id % of type %s does not exist." %(self.Id, type(self).__name__))
+
+        config.logger.info(r.text)
+        raise RequestException("Your request was not successful...")
+
+    def get_by_id(self, config):
+        return self.do_request("get", config)
+
+    def update_by_id(self, config):
+        return self.do_request("put", config)
+
+    def create(self, config):
+        if self.Id is not None:
+            return IdMustBeNull("When creating a new object, the ID of your %s-object must be NULL instead of %s" %(type(self).__name__, self.Id))
+
+        return self.do_request("post", config)
+
+class Api_Nominal(Api_Abstract_Model):
+    endpoint = 'nominal'
     def __init__(self):
         self.ExternalId = ""
         self.ContactId = ""
@@ -18,7 +91,7 @@ class Api_Nominal():
         self.DateTo = ""
         self.Id = ""
 
-class Api_Person():
+class Api_Person(Api_Abstract_Model):
     def __init__(self):
         self.ExternalI= ''
         self.InternalCompanyId= ''
@@ -47,7 +120,7 @@ class Api_Person():
         self.Merge= ''
         self.Id= ''
 
-class Api_PlanningItem():
+class Api_PlanningItem(Api_Abstract_Model):
     def __init__(self):
         self.ExternalId = ''
         self.PlanningDepartmentId = ''
@@ -108,7 +181,8 @@ class Api_PlanningItem():
     def __str__(self):
         return "PIid: %s for production %s on %s created by %s" %(str(self.Id), self.ProductionId, self.DateFrom, self.CreateUser)
 
-class Api_BookingItem():
+class Api_BookingItem(Api_Abstract_Model):
+    endpoint = 'booking'
     def __init__(self):
         self.ExternalId=''
         self.PlanningItemId=''
@@ -144,7 +218,8 @@ class Api_BookingItem():
         self.UpdateTimestamp=''
         self.Id=''
 
-class Api_Asset():
+class Api_Asset(Api_Abstract_Model):
+    endpoint = 'asset'
     def __init__(self):
         self.ExternalI=''
         self.CostCenterId=''
@@ -160,7 +235,8 @@ class Api_Asset():
         self.PlanningGroupIds=''
         self.Id=''
 
-class Api_Shift():
+class Api_Shift(Api_Abstract_Model):
+    endpoint = 'shift'
     def __init__(self):
         self.ExternalId=''
         self.Name=''
@@ -169,7 +245,8 @@ class Api_Shift():
         self.Break=''
         self.Id=''
 
-class Api_Production():
+class Api_Production(Api_Abstract_Model):
+    endpoint = 'production'
     def __init__(self):
         self.ExternalId=''
         self.MasterId=''
@@ -242,15 +319,8 @@ class Api_Production():
         self.ProductionStatusName=''
         self.Id=''
 
-    def get_by_id(self, config = None, id = None):
-        endpoint = "%sproduction" %config.api_domain
-        params = { 'Id': id}
-        production_request = requests.get(endpoint, params = params, headers = config.api_headers)
-        self.__dict__ = json.loads(production_request.text)
-
-        return self
-
-class Api_Holiday():
+class Api_Holiday(Api_Abstract_Model):
+    endpoint = 'holiday'
     def __init__(self):
         self.ExternalId=''
         self.ResourceId=''
@@ -265,3 +335,27 @@ class Api_Holiday():
         self.Remarks=''
         self.ExternalCode=''
         self.Id=''
+
+    def create(self, config):
+        if self.ResourceId is None or self.ResourceId == '':
+            return Exception("A ResourceId is required.")
+
+        if self.DateFrom is None or self.DateFrom == '':
+            return Exception("A DateFrom is required.")
+
+        if self.Type is None or self.Type == '':
+            return Exception("A Type is required.")
+
+        if self.TransactionType is None or self.TransactionType == '':
+            return Exception("A TransactionType is required.")
+
+        if self.Status is None or self.Status == '':
+            return Exception("A Status is required.")
+
+        if self.RoleId is None or self.RoleId == '':
+            return Exception("A RoleId is required.")
+
+        if self.Amount is None or self.Amount == '':
+            return Exception("An Amount is required.")
+
+        return super().create(config)
