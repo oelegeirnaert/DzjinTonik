@@ -249,3 +249,19 @@ class Api_Production():
         self.__dict__ = json.loads(production_request.text)
 
         return self
+
+class Api_Holiday():
+    def __init__(self):
+        self.ExternalId=''
+        self.ResourceId=''
+        self.DateFrom=''
+        self.DateTo=''
+        self.Type=''
+        self.TransactionType=''
+        self.Status=''
+        self.RoleId=''
+        self.Amount=''
+        self.BookingId=''
+        self.Remarks=''
+        self.ExternalCode=''
+        self.Id=''
