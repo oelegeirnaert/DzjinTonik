@@ -22,7 +22,7 @@ class ItemDoesNotExist(Exception):
     pass
 
 class Api_Abstract_Model():
-    def do_request(self, action, config):
+    def do_request(self, action, config, params=None):
 
         if self.endpoint is None:
             return EndpointRequired("Please provide an endpoint")
@@ -32,9 +32,10 @@ class Api_Abstract_Model():
         if ("GET" in action.upper() or "PUT" in action.upper()) and self.Id is None:
             return IdRequired("Please provide an ID for your %s-object..." %type(self).__name__)
 
-        params = {
-            'id': self.Id
-        }
+        if params is None:
+            params = {
+                'id': self.Id
+                }
 
         config.logger.debug("%s action to: %s" %(action, request_endpoint))
 
@@ -57,13 +58,20 @@ class Api_Abstract_Model():
             return self
 
         if r.status_code == 404:
-            return ItemDoesNotExist("The item with id % of type %s does not exist." %(self.Id, type(self).__name__))
+            return ItemDoesNotExist("A %s with this paramaters %s does not exist." %(type(self).__name__, params))
 
         config.logger.info(r.text)
         raise RequestException("Your request was not successful...")
 
-    def get_by_id(self, config):
-        return self.do_request("get", config)
+    @classmethod
+    def get_by_id(cls, config, id):
+
+        if id is None:
+            return IdRequired("We need an id in order to get a %s-item." %cls.__name__)
+        params = {
+            'id': id
+            }
+        return cls().do_request("get", config, params)
 
     def update_by_id(self, config):
         return self.do_request("put", config)
@@ -73,6 +81,21 @@ class Api_Abstract_Model():
             return IdMustBeNull("When creating a new object, the ID of your %s-object must be NULL instead of %s" %(type(self).__name__, self.Id))
 
         return self.do_request("post", config)
+
+    @classmethod
+    def get_all(cls, config):
+        print(cls.endpoint)
+        params = {
+            'pagesize' : 0
+        }
+        request_endpoint = "%s%s" %(config.api_domain, cls.endpoint)
+
+        r = requests.get(request_endpoint, params=params, headers=config.api_headers)
+        if r.status_code != 200:
+            return RequestException("Your request to get all the % items failed." %type(self).__name__)
+
+        items = json.loads(r.text)['PageItems']
+        return items
 
 class Api_Nominal(Api_Abstract_Model):
     endpoint = 'nominal'
