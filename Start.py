@@ -7,6 +7,7 @@ import requests
 import sys
 import pymssql
 import logging
+import time
 
 from models import *
 from api_models import *
@@ -850,6 +851,100 @@ def ChangeHolidays(config, input_file):
     a_holiday.Id = 25341
     a_holiday.get_by_id(config)
 
+def Change_Bookings_Without_Break(config, sql_file, update_all, update_in_dt):
+    '''
+    Following HR and Social Inspection rules, every person should take at
+    least 30min of break for shifts longer than x minutes/hours. 
+    '''
+    bookings_to_change = dt_util.get_sql_list_from_file(config, sql_file)
+    for booking in bookings_to_change:
+        current_booking_id = booking['BOOKING_ID']
+        try:
+            current_booking = Api_BookingItem().get_by_id(config, current_booking_id)
+
+            current_planningitem_id = current_booking.PlanningItemId
+            try:
+                current_planningitem = Api_PlanningItem().get_by_id(config, current_planningitem_id)
+            except Exception as e:
+                print("Cannot get planningitem with id: %s" %pid)
+                print(e)
+
+            current_shift_id = current_planningitem.ShiftId
+            try:
+                current_shift = Api_Shift().get_by_id(config, current_shift_id)
+                print(current_shift.Name)
+            except Exception as e:
+                print("Cannot get shift with id: %s" %current_shift_id)
+                print(e)
+        except Exception as e:
+            print("Cannot get booking with id: %s" %current_booking_id)
+            print(e)
+
+        print_full_info(current_shift, current_planningitem, current_booking)
+
+        if current_shift.Break is not None:
+            if not isinstance(current_planningitem, ItemDoesNotExist):
+                if current_planningitem.BreakTime is None or current_planningitem.BreakTime != current_shift.Break:
+                    current_planningitem.BreakTime = current_shift.Break
+
+                if current_planningitem.ActualBreak is None or current_planningitem.ActualBreak >= 0:
+                    current_planningitem.ActualBreak = current_shift.Break
+
+            if not isinstance(current_booking, ItemDoesNotExist):
+                if current_booking.BreakTime is None or current_booking.BreakTime != current_shift.Break:
+                    current_booking.BreakTime = current_shift.Break
+
+                if current_booking.ActualBreak is None or current_booking.ActualBreak >= 0:
+                    current_booking.ActualBreak = current_shift.Break
+
+        print_full_info(current_shift, current_planningitem, current_booking)
+
+        if update_in_dt:
+            if not isinstance(current_booking, ItemDoesNotExist):
+                current_booking.update_by_id(config)
+            if not isinstance(current_planningitem, ItemDoesNotExist):
+                current_planningitem.update_by_id(config)
+
+        if not update_all:
+            answer = dt_util.ask_yes_no_question("Update next?")
+            if not answer:
+                print("OK, BYE BYE, thanks for using me!")
+                sys.exit()
+            else:
+                print("OK, let's update the next item")
+                time.sleep(2)
+
+
+
+def print_full_info(shift, planningitem, booking):
+    if not isinstance(shift, Api_Shift):
+        print("This is not a shift...")
+
+    if not isinstance(planningitem, Api_PlanningItem):
+        print("This is not a planningsitem...")
+
+    if not isinstance(booking, Api_BookingItem):
+        print("This is not a booking...")
+
+    print("%s" % '-' * 80)
+    if shift.Break is not None:
+        print("Shift %s with break: %s" %(shift.Name, shift.Break))
+    else:
+        print("This shift has no breaktime set!")
+
+    if not isinstance(planningitem, ItemDoesNotExist):
+        print("  Planningitem planned break: %s" %planningitem.BreakTime)
+        print("  Planningitem actual break: %s" %planningitem.ActualBreak)
+    else:
+        print("This planningitem is None!")
+
+    if not isinstance(booking, ItemDoesNotExist):
+        print("  Booking planned break: %s" %booking.BreakTime)
+        print("  Booking actual break: %s" %booking.ActualBreak)
+    else:
+        print("The booking is none!")
+    print("%s" % '-' * 80)
+
 #my_config = ProgramConfig("SetHrGroup_WithTV")
 #x = get_list_from_file("INPUT_FILES/contacts_with_approver.txt", separator=";")
 #for i in x:
@@ -862,7 +957,7 @@ def ChangeHolidays(config, input_file):
 #get_all_contacts_and_store_in_file(my_config,"OUTPUT_FILES/dt_contacts.txt")
 #get_all_holiday_approvers(my_config, "OUTPUT_FILES/holiday_approvers.txt")
 #update_contacts_with_approver_from_file(my_config, "INPUT_FILES/contacts_with_approver.txt")
-my_config = ProgramConfig("ChangeProductions", "test", logging.DEBUG, True)
+my_config = ProgramConfig("ChangeProductions", "prod", logging.DEBUG, True)
 #SetHRGroupsForContactsFromFile(my_config, "INPUT_FILES/set_hr_groups_20190329.csv" )
 #SetCompanyFromFile(my_config, "QUERIES/set_company.sql")
 #Delete_Old_BloxNumbers(my_config, "QUERIES/remove_old_blox.sql")
@@ -884,4 +979,7 @@ else:
     change_planningitems_for_production(my_config, 20, 21, 2018) #in test we don't have 77
 '''
 
-ChangeHolidays(my_config, 'INPUT_FILES/holiday_ids_to_change.txt')
+#ChangeHolidays(my_config, 'INPUT_FILES/holiday_ids_to_change.txt')
+
+#config, sql_file, update_all, update_in_dt
+Change_Bookings_Without_Break(my_config, "QUERIES/shifts_without_break.sql", True, True)
