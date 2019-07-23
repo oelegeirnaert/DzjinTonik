@@ -77,7 +77,9 @@ class Api_Abstract_Model():
         return self.do_request("put", config)
 
     def create(self, config):
+        config.logger.debug("Trying to create...")
         if self.Id is not None:
+            config.logger.debug("ID must be null!")
             return IdMustBeNull("When creating a new object, the ID of your %s-object must be NULL instead of %s" %(type(self).__name__, self.Id))
 
         return self.do_request("post", config)
@@ -95,7 +97,13 @@ class Api_Abstract_Model():
             return RequestException("Your request to get all the % items failed." %type(self).__name__)
 
         items = json.loads(r.text)['PageItems']
-        return items
+        total_items = json.loads(r.text)['TotalCount']
+        list = []
+        for item in items:
+            item_cls = cls()
+            item_cls.__dict__ = item
+            list.append(item_cls)
+        return list, total_items
 
 class Api_Nominal(Api_Abstract_Model):
     endpoint = 'nominal'
@@ -113,6 +121,25 @@ class Api_Nominal(Api_Abstract_Model):
         self.DateFrom = ""
         self.DateTo = ""
         self.Id = ""
+
+    def get_by_resourceid(self, config, resourceId):
+        nominals = super().do_request("GET", config, params={'resourceid': resourceId})
+        nominal_list = []
+        for nominal in nominals.PageItems:
+            current_nominal = Api_Nominal()
+            current_nominal.__dict__ = nominal
+            nominal_list.append(current_nominal)
+
+        print("%s nominal(s) found for resourceid: %s" %(len(nominal_list),resourceId))
+        return nominal_list
+
+    @staticmethod
+    def get_active_nominal_for_date(self, search_date):
+        for i in self:
+            print(i)
+
+
+
 
 class Api_Person(Api_Abstract_Model):
     endpoint = 'person'
@@ -361,26 +388,52 @@ class Api_Holiday(Api_Abstract_Model):
         self.ExternalCode=''
         self.Id=''
 
+    def __str__(self):
+        return "ResourceID: %s - From %s to %s for BookingId: %s"%(self.ResourceId, self.DateFrom, self.DateTo, self.BookingId)
+
+    def get_by_bookingid(self, config, bookingid):
+        config.logger.debug("Try to get holiday from booking with id %s " %bookingid)
+        my_response = super().do_request("GET", config, params={'bookingid':bookingid})
+        print(my_response.__dict__)
+        if my_response.TotalCount==1:
+            config.logger.debug("OK, one item found!")
+            self.__dict__ = my_response.PageItems[0]
+            config.logger.debug("MY DICT")
+            print(self.__dict__)
+            return self
+        else:
+            return Exception("Multiple items found!")
+
+        return None
+
     def create(self, config):
+        print("Trying to create a holiday item.")
         if self.ResourceId is None or self.ResourceId == '':
-            return Exception("A ResourceId is required.")
-
+            raise Exception("A ResourceId is required.")
+        print("1")
         if self.DateFrom is None or self.DateFrom == '':
-            return Exception("A DateFrom is required.")
+            raise Exception("A DateFrom is required.")
 
+        print("2")
         if self.Type is None or self.Type == '':
-            return Exception("A Type is required.")
+            raise Exception("A Type is required.")
 
+        print("3")
         if self.TransactionType is None or self.TransactionType == '':
-            return Exception("A TransactionType is required.")
+            raise Exception("A TransactionType is required.")
 
+        print("4")
         if self.Status is None or self.Status == '':
-            return Exception("A Status is required.")
+            raise  Exception("A Status is required.")
 
+        print("5")
         if self.RoleId is None or self.RoleId == '':
-            return Exception("A RoleId is required.")
+            raise Exception("A RoleId is required.")
 
+        print("6")
         if self.Amount is None or self.Amount == '':
-            return Exception("An Amount is required.")
+            raise Exception("An Amount is required.")
 
+        print("Tests passed!")
+        config.logger.debug("Tests passed, create it.")
         return super().create(config)

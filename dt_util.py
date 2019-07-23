@@ -4,9 +4,9 @@ import pymssql
 import datetime
 
 def str2bool(v):
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+    if v.lower().strip() in ('yes', 'true', 't', 'y', '1'):
         return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+    elif v.lower().strip() in ('no', 'false', 'f', 'n', '0'):
         return False
     else:
         raise Error('Boolean value expected.')
@@ -14,7 +14,7 @@ def str2bool(v):
 def ask_yes_no_question(question):
     answer = input('%s (y/n) ' %question)
     return str2bool(answer)
-    
+
 def check_if_json(str):
     if "<html>" in str:
         print(str)
@@ -54,7 +54,8 @@ def get_sql_list_from_file(config, sql_file):
 
         try:
             with open(sql_file, 'r') as myfile:
-                strQry = myfile.read().replace('\n', '')
+                strQry = myfile.read().replace('\n', ' ')
+                #strQry = myfile.readlines()
         except Exception as e:
             print("Sorry, I cannot read your SQL file: %s!" %file)
 

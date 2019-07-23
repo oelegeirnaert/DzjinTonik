@@ -853,8 +853,8 @@ def ChangeHolidays(config, input_file):
 
 def Change_Bookings_Without_Break(config, sql_file, update_all, update_in_dt):
     '''
-    Following HR and Social Inspection rules, every person should take at
-    least 30min of break for shifts longer than x minutes/hours. 
+    Following HR and Belgian Social Inspection rules, every person should take at
+    least 30min of break for shifts longer than x minutes/hours.
     '''
     bookings_to_change = dt_util.get_sql_list_from_file(config, sql_file)
     for booking in bookings_to_change:
@@ -945,6 +945,60 @@ def print_full_info(shift, planningitem, booking):
         print("The booking is none!")
     print("%s" % '-' * 80)
 
+def Restore_Holidays(config, sqlfile, update_in_dt, update_all):
+    '''
+        NOT COMPLETED YET!
+        Take the right holiday nominal value.
+        FI: if the booking happend in march, and the nominal has been changed in april.
+        Take the holiday nominal of march instead of the one of today!
+
+        FIX: Instead of doing this task by scriptiong.
+        Just change the status of the booking in the GUI, and all the logic will be applied by DT.
+        Only 45 cases, not that much to do it manually taken into account the development costs/time.
+    '''
+    nominal = Api_Nominal().get_by_resourceid(config, 2)
+    sys.exit()
+    list = dt_util.get_sql_list_from_file(config, sqlfile)
+    print(list)
+    for item in list:
+        current_booking_id = item['BookingId']
+        current_booking = Api_BookingItem().get_by_id(config, current_booking_id)
+        current_holiday = Api_Holiday().get_by_bookingid(config, current_booking_id)
+
+        if isinstance(current_booking, ItemDoesNotExist):
+            print("The current booking with this ID doesn't exist... So do nothing...")
+            continue
+
+        if isinstance(current_holiday, Api_Holiday):
+            print("The holiday for this booking already exists.")
+            continue
+        else:
+            current_holiday = Api_Holiday()
+            current_holiday.ResourceId = item['ResourceId']
+            current_holiday.DateFrom = item['StartTime']
+            current_holiday.DateTo = item['EndTime']
+            current_holiday.RoleId = 398
+            current_holiday.Type = 1
+            current_holiday.TransactionType = 1
+            current_holiday.Status = 2
+            current_holiday.BookingId = current_booking.Id
+            print(current_holiday)
+            print(update_in_dt)
+            if update_in_dt:
+                try:
+                    print("Trying to create current holiday for %s %s..." %(item['FirstName'], item['LastName']))
+                    current_holiday.create(config)
+                    print("Check holidays via:")
+                    print("%s/Contact?ContactId=%s#holidayTab" %(config.domain, item['ContactId']))
+                    print("Creation success!")
+                except Exception as e:
+                    print(e)
+
+        if not update_all:
+            answer = dt_util.ask_yes_no_question("Update next one?")
+            if not answer:
+                sys.exit()
+
 #my_config = ProgramConfig("SetHrGroup_WithTV")
 #x = get_list_from_file("INPUT_FILES/contacts_with_approver.txt", separator=";")
 #for i in x:
@@ -957,7 +1011,8 @@ def print_full_info(shift, planningitem, booking):
 #get_all_contacts_and_store_in_file(my_config,"OUTPUT_FILES/dt_contacts.txt")
 #get_all_holiday_approvers(my_config, "OUTPUT_FILES/holiday_approvers.txt")
 #update_contacts_with_approver_from_file(my_config, "INPUT_FILES/contacts_with_approver.txt")
-my_config = ProgramConfig("ChangeProductions", "prod", logging.DEBUG, True)
+
+my_config = ProgramConfig("CorrectHolidays", "test", logging.DEBUG, True)
 #SetHRGroupsForContactsFromFile(my_config, "INPUT_FILES/set_hr_groups_20190329.csv" )
 #SetCompanyFromFile(my_config, "QUERIES/set_company.sql")
 #Delete_Old_BloxNumbers(my_config, "QUERIES/remove_old_blox.sql")
@@ -982,4 +1037,5 @@ else:
 #ChangeHolidays(my_config, 'INPUT_FILES/holiday_ids_to_change.txt')
 
 #config, sql_file, update_all, update_in_dt
-Change_Bookings_Without_Break(my_config, "QUERIES/shifts_without_break.sql", True, True)
+#Change_Bookings_Without_Break(my_config, "QUERIES/shifts_without_break.sql", True, True)
+Restore_Holidays(my_config, "QUERIES/Restore_Holidays.sql", True, False)
