@@ -999,6 +999,18 @@ def Restore_Holidays(config, sqlfile, update_in_dt, update_all):
             if not answer:
                 sys.exit()
 
+def Get_All_Productions(config):
+    my_list, count = Api_Production.get_all(config)
+    print("We've found %s productions" %count)
+    for item in my_list:
+        print(item.Name)
+
+def Get_All_Nominals(config):
+    my_list, count = Api_Nominal.get_all(config)
+    print("We've found %s nominals." %count)
+    for item in my_list:
+        print(item)
+
 #my_config = ProgramConfig("SetHrGroup_WithTV")
 #x = get_list_from_file("INPUT_FILES/contacts_with_approver.txt", separator=";")
 #for i in x:
@@ -1038,4 +1050,6 @@ else:
 
 #config, sql_file, update_all, update_in_dt
 #Change_Bookings_Without_Break(my_config, "QUERIES/shifts_without_break.sql", True, True)
-Restore_Holidays(my_config, "QUERIES/Restore_Holidays.sql", True, False)
+#Restore_Holidays(my_config, "QUERIES/Restore_Holidays.sql", True, False)
+#Get_All_Productions(my_config)
+Get_All_Nominals(my_config)

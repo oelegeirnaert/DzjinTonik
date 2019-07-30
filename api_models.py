@@ -105,6 +105,8 @@ class Api_Abstract_Model():
             list.append(item_cls)
         return list, total_items
 
+
+
 class Api_Nominal(Api_Abstract_Model):
     endpoint = 'nominal'
     def __init__(self):
@@ -122,6 +124,9 @@ class Api_Nominal(Api_Abstract_Model):
         self.DateTo = ""
         self.Id = ""
 
+    def __str__(self):
+        return "Nominal %s with Id %s for contact: %s" %(self.Nominal, self.Id, self.ContactId)
+
     def get_by_resourceid(self, config, resourceId):
         nominals = super().do_request("GET", config, params={'resourceid': resourceId})
         nominal_list = []
@@ -137,6 +142,8 @@ class Api_Nominal(Api_Abstract_Model):
     def get_active_nominal_for_date(self, search_date):
         for i in self:
             print(i)
+
+
 
 
 
@@ -370,6 +377,9 @@ class Api_Production(Api_Abstract_Model):
         self.ProductionStatusId=''
         self.ProductionStatusName=''
         self.Id=''
+
+    def __str__(self):
+        return "%s (id: %s)" %(self.Name, self.Id)
 
 class Api_Holiday(Api_Abstract_Model):
     endpoint = 'holiday'
