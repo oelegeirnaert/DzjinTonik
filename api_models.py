@@ -73,7 +73,7 @@ class Api_Abstract_Model():
             }
         return cls().do_request("get", config, params)
 
-    def update_by_id(self, config):
+    def update(self, config):
         return self.do_request("put", config)
 
     def create(self, config):

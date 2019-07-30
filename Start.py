@@ -901,9 +901,9 @@ def Change_Bookings_Without_Break(config, sql_file, update_all, update_in_dt):
 
         if update_in_dt:
             if not isinstance(current_booking, ItemDoesNotExist):
-                current_booking.update_by_id(config)
+                current_booking.update(config)
             if not isinstance(current_planningitem, ItemDoesNotExist):
-                current_planningitem.update_by_id(config)
+                current_planningitem.update(config)
 
         if not update_all:
             answer = dt_util.ask_yes_no_question("Update next?")
@@ -1011,6 +1011,16 @@ def Get_All_Nominals(config):
     for item in my_list:
         print(item)
 
+def Get_A_Production_By_ID(config, id):
+    my_production = Api_Production.get_by_id(config, id)
+    print(my_production.Name)
+    my_production.Name = my_production.Name + random_password_generator(size=6, chars=string.ascii_uppercase + string.digits)
+    print(my_production.Name)
+    if config.environment.upper() != 'PROD':
+        my_production.update(config)
+    else:
+        raise Exception("This is a test and we cannot update it in a production environment.")
+
 #my_config = ProgramConfig("SetHrGroup_WithTV")
 #x = get_list_from_file("INPUT_FILES/contacts_with_approver.txt", separator=";")
 #for i in x:
@@ -1052,4 +1062,5 @@ else:
 #Change_Bookings_Without_Break(my_config, "QUERIES/shifts_without_break.sql", True, True)
 #Restore_Holidays(my_config, "QUERIES/Restore_Holidays.sql", True, False)
 #Get_All_Productions(my_config)
-Get_All_Nominals(my_config)
+#Get_All_Nominals(my_config)
+Get_A_Production_By_ID(my_config, 5)
