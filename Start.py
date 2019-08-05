@@ -465,6 +465,7 @@ def SetExecutivesFromFileViaAPI(config, file):
     config.logger.info("Number of non-executives set in dt: %s" %non_executive_counter)
     sys.exit()
 
+
 def UpdateShifts(config = None, file = None, minutes_to_add=None):
     my_list = get_list_from_file(file, separator = ";")
     for item in my_list:
@@ -611,7 +612,6 @@ def WolfTechIntegration(config, sqlfile, loadfrom):
             print(stringMaker(current_booking_item, current_person, current_asset, pdname, pdgname))
 
 
-
 def WolfTechIntegrationBetterPerformance(config, sqlfile, loadfrom):
     if not isinstance(config, ProgramConfig):
         raise Exception("Your config must be a config class.")
@@ -653,8 +653,6 @@ def WolfTechIntegrationBetterPerformance(config, sqlfile, loadfrom):
         all_assets_json = json.loads(current_asset_request.text)['PageItems']
         all_assets.__dict__ = all_assets_json
 
-
-
         #Maybe it's better to load all the assets and persons in two calls instead of doing them in the for-loop.
         #Something like: "%s/person?pagesize=0" %(config.api_domain) instead of "%s/person?resourceId=%s" %(config.api_domain, current_booking_item.ResourceId)
         #Next you can query them in-memory so we save time because we don't need to query the slower API everytime.
@@ -686,7 +684,6 @@ def Change_Shift_Times_MCR(config, shift_ids, shift_from):
         'Authorization': config.api_authorization
         }
 
-
     shift_endpoint = "%sshift" %config.api_domain
     planning_endpoint = "%splanningitem" %config.api_domain
     booking_endpoint = "%sbooking" %config.api_domain
@@ -710,8 +707,6 @@ def Change_Shift_Times_MCR(config, shift_ids, shift_from):
         answer = dt_util.ask_yes_no_question("Would you like to update the bookings with shiftname %s with the following starttime: %s and endtime: %s" %(api_shift.Name, shift_start_datetime.time(), shift_end_datetime.time()))
         if answer == False:
             continue
-
-
 
         planning_item_request = requests.request("GET", planning_endpoint, headers = headers, params=shift_params)
         json_planningitems = json.loads(planning_item_request.text)['PageItems']
@@ -793,11 +788,13 @@ def change_start_end(item, new_start_time, new_end_time):
 
     return item
 
+
 def print_new_times(item, conv_str):
     print("The %s start datetime is: %s" %(conv_str, item.StartTime))
     print("The %s end datetime is: %s" %(conv_str, item.EndTime))
     print("The %s actual start datetime is: %s" %(conv_str, item.ActualStart))
     print("The %s actual end datetime is: %s" %(conv_str, item.ActualEnd))
+
 
 def change_planningitems_for_production(config, from_production_id, to_production_id, year_to_change):
     '''
@@ -846,10 +843,12 @@ def change_planningitems_for_production(config, from_production_id, to_productio
 
     print("%s items were changed..." %len(list_to_change))
 
+
 def ChangeHolidays(config, input_file):
     a_holiday = Api_Holiday()
     a_holiday.Id = 25341
     a_holiday.get_by_id(config)
+
 
 def Change_Bookings_Without_Break(config, sql_file, update_all, update_in_dt):
     '''
@@ -913,7 +912,6 @@ def Change_Bookings_Without_Break(config, sql_file, update_all, update_in_dt):
             else:
                 print("OK, let's update the next item")
                 time.sleep(2)
-
 
 
 def print_full_info(shift, planningitem, booking):
@@ -999,17 +997,35 @@ def Restore_Holidays(config, sqlfile, update_in_dt, update_all):
             if not answer:
                 sys.exit()
 
+
 def Get_All_Productions(config):
     my_list, count = Api_Production.get_all(config)
     print("We've found %s productions" %count)
     for item in my_list:
         print(item.Name)
 
+
 def Get_All_Nominals(config):
     my_list, count = Api_Nominal.get_all(config)
     print("We've found %s nominals." %count)
     for item in my_list:
         print(item)
+
+
+def Get_All_ContactPlanningGroups(config):
+    all_contact_planning_groups, count = Api_ContactPlanningGroup.get_all(config)
+    print("We've found %s contactplanninggroups." %count)
+    for item in all_contact_planning_groups:
+        if item._get_type_name() != 'HR':
+            print(item)
+            sys.exit()
+
+
+def Get_All_Holidays(config):
+    all_holidays, count = Api_Holiday.get_all(config)
+    for item in all_holidays:
+        print(item)
+
 
 def Get_A_Production_By_ID(config, id):
     my_production = Api_Production.get_by_id(config, id)
@@ -1020,6 +1036,64 @@ def Get_A_Production_By_ID(config, id):
         my_production.update(config)
     else:
         raise Exception("This is a test and we cannot update it in a production environment.")
+
+
+def Update_Journalisten_PlanningDepartmentGroup(config, new_group_id, update_in_dt, update_all):
+    if config.environment.upper() == 'PROD':
+        paged_items = 0
+    else:
+        paged_items = 20000
+
+    all_planning_department_groups, planning_department_groups_count = Api_PlanningDepartmentGroup().get_all(config, paged_items = paged_items)
+    all_journalist_group_ids = []
+    all_journalist_groups = []
+
+    for item in all_planning_department_groups:
+        if 'journalisten -' in item.Name.lower():
+            all_journalist_group_ids.append(item.Id)
+            all_journalist_groups.append(item)
+
+    print("-------------------------------------------------------------------------------")
+    print("We'll update all the planningitems from the following PlanningDepartmentGroups:")
+    for item in all_journalist_groups:
+        print("%s - %s" %(" "*3, item.Name))
+    print("-------------------------------------------------------------------------------")
+
+    update_to_group = None
+    try:
+        update_to_group = Api_PlanningDepartmentGroup().get_by_id(config, new_group_id)
+    except ItemDoesNotExist:
+        print("This planning departement group with id %s doesn't exist... Please choose an existing one from the following list: " %new_group_id)
+        for item in all_planning_department_groups:
+            print("%s * %s" %(" "*3, item))
+    if update_to_group is None:
+        sys.exit()
+
+    print("We'll change those items to the following PlanningDeparmentGroup: %s" %update_to_group.Name)
+    answer = dt_util.ask_yes_no_question("Are you sure you'd like to update with this group?")
+    if not answer:
+        print("Ok, we'll cancel your request!")
+        sys.exit()
+
+    all_planning_items, planning_items_count = Api_PlanningItem().get_all(config, paged_items=paged_items)
+    for item in all_planning_items:
+        #INFO:config:{"Message":"An error has occurred.","ExceptionMessage":"Invalid ID '0' for property 'PlanningType'.","ExceptionType":"iBoris.Unicorn.InvalidMappedDomainObjectIdException","StackTrace":null,"InnerException":{"Message":"An error has occurred.","ExceptionMessage":"Cannot get an entity in insert mode.","ExceptionType":"System.InvalidOperationException","StackTrace":"   at iBoris.Unicorn.Persister`1.get_Entity()"}}
+        if item.PlanningTypeId == 0:
+            continue
+
+        if item.PlanningDepartmentGroupId in all_journalist_group_ids:
+            item.PlanningDepartmentGroupId = new_group_id
+
+            if update_in_dt:
+                item.update(config)
+
+            if not update_all:
+                answer_yes = dt_util.ask_yes_no_question("Would you like to go to next item?")
+                if not answer_yes:
+                    sys.exit()
+
+
+        #sys.exit()
 
 #my_config = ProgramConfig("SetHrGroup_WithTV")
 #x = get_list_from_file("INPUT_FILES/contacts_with_approver.txt", separator=";")
@@ -1034,7 +1108,7 @@ def Get_A_Production_By_ID(config, id):
 #get_all_holiday_approvers(my_config, "OUTPUT_FILES/holiday_approvers.txt")
 #update_contacts_with_approver_from_file(my_config, "INPUT_FILES/contacts_with_approver.txt")
 
-my_config = ProgramConfig("CorrectHolidays", "test", logging.DEBUG, True)
+my_config = ProgramConfig("Get all contact planning groups", "test", logging.DEBUG, True)
 #SetHRGroupsForContactsFromFile(my_config, "INPUT_FILES/set_hr_groups_20190329.csv" )
 #SetCompanyFromFile(my_config, "QUERIES/set_company.sql")
 #Delete_Old_BloxNumbers(my_config, "QUERIES/remove_old_blox.sql")
@@ -1063,4 +1137,14 @@ else:
 #Restore_Holidays(my_config, "QUERIES/Restore_Holidays.sql", True, False)
 #Get_All_Productions(my_config)
 #Get_All_Nominals(my_config)
-Get_A_Production_By_ID(my_config, 5)
+#Get_A_Production_By_ID(my_config, 5)
+#Get_All_ContactPlanningGroups(my_config)
+#Get_All_Holidays(my_config)
+
+#config, new_group_id, update_in_dt, update_all
+
+#We only have the PG with ID: 126 in PROD, to in TEST take another
+if my_config.environment.upper() == 'PROD':
+    Update_Journalisten_PlanningDepartmentGroup(my_config, 126, True, True)
+else:
+    Update_Journalisten_PlanningDepartmentGroup(my_config, 20, True, True)
