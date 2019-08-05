@@ -25,12 +25,12 @@ class Api_Abstract_Model():
     def do_request(self, action, config, params=None):
 
         if self.endpoint is None:
-            return EndpointRequired("Please provide an endpoint")
+            raise EndpointRequired("Please provide an endpoint")
 
         request_endpoint = "%s%s" %(config.api_domain, self.endpoint)
 
         if ("GET" in action.upper() or "PUT" in action.upper()) and self.Id is None:
-            return IdRequired("Please provide an ID for your %s-object..." %type(self).__name__)
+            raise IdRequired("Please provide an ID for your %s-object..." %type(self).__name__)
 
         if params is None:
             params = {
@@ -48,7 +48,7 @@ class Api_Abstract_Model():
             config.logger.debug(self.__dict__)
             r = requests.post(request_endpoint, headers=config.api_headers, data=self.__dict__)
         else:
-            return MethodException("Please choose a right method...")
+            raise MethodException("Please choose a right method...")
 
         config.logger.debug("STATUSCODE: %s" %r.status_code)
 
@@ -58,7 +58,7 @@ class Api_Abstract_Model():
             return self
 
         if r.status_code == 404:
-            return ItemDoesNotExist("A %s with this paramaters %s does not exist." %(type(self).__name__, params))
+            raise ItemDoesNotExist("A %s with this paramaters %s does not exist." %(type(self).__name__, params))
 
         config.logger.info(r.text)
         raise RequestException("Your request was not successful...")
@@ -85,10 +85,10 @@ class Api_Abstract_Model():
         return self.do_request("post", config)
 
     @classmethod
-    def get_all(cls, config):
+    def get_all(cls, config, paged_items = 0):
         print(cls.endpoint)
         params = {
-            'pagesize' : 0
+            'pagesize' : paged_items
         }
         request_endpoint = "%s%s" %(config.api_domain, cls.endpoint)
 
@@ -104,7 +104,6 @@ class Api_Abstract_Model():
             item_cls.__dict__ = item
             list.append(item_cls)
         return list, total_items
-
 
 
 class Api_Nominal(Api_Abstract_Model):
@@ -144,10 +143,6 @@ class Api_Nominal(Api_Abstract_Model):
             print(i)
 
 
-
-
-
-
 class Api_Person(Api_Abstract_Model):
     endpoint = 'person'
     def __init__(self):
@@ -177,6 +172,7 @@ class Api_Person(Api_Abstract_Model):
         self.Function= ''
         self.Merge= ''
         self.Id= ''
+
 
 class Api_PlanningItem(Api_Abstract_Model):
     endpoint = 'planningitem'
@@ -223,6 +219,8 @@ class Api_PlanningItem(Api_Abstract_Model):
         print("Update success")
         return True
 
+    '''
+    made it available in the abstract class
     @staticmethod
     def get_all(config, paged_items = 0):
         list = []
@@ -236,9 +234,11 @@ class Api_PlanningItem(Api_Abstract_Model):
             list.append(pi)
 
         return list
+    '''
 
     def __str__(self):
         return "PIid: %s for production %s on %s created by %s" %(str(self.Id), self.ProductionId, self.DateFrom, self.CreateUser)
+
 
 class Api_BookingItem(Api_Abstract_Model):
     endpoint = 'booking'
@@ -277,6 +277,7 @@ class Api_BookingItem(Api_Abstract_Model):
         self.UpdateTimestamp=''
         self.Id=''
 
+
 class Api_Asset(Api_Abstract_Model):
     endpoint = 'asset'
     def __init__(self):
@@ -294,6 +295,7 @@ class Api_Asset(Api_Abstract_Model):
         self.PlanningGroupIds=''
         self.Id=''
 
+
 class Api_Shift(Api_Abstract_Model):
     endpoint = 'shift'
     def __init__(self):
@@ -303,6 +305,7 @@ class Api_Shift(Api_Abstract_Model):
         self.EndTime=''
         self.Break=''
         self.Id=''
+
 
 class Api_Production(Api_Abstract_Model):
     endpoint = 'production'
@@ -381,6 +384,7 @@ class Api_Production(Api_Abstract_Model):
     def __str__(self):
         return "%s (id: %s)" %(self.Name, self.Id)
 
+
 class Api_Holiday(Api_Abstract_Model):
     endpoint = 'holiday'
     def __init__(self):
@@ -399,7 +403,11 @@ class Api_Holiday(Api_Abstract_Model):
         self.Id=''
 
     def __str__(self):
-        return "ResourceID: %s - From %s to %s for BookingId: %s"%(self.ResourceId, self.DateFrom, self.DateTo, self.BookingId)
+        return "ResourceID: %s - From %s to %s for BookingId: %s - Transaction: %s"%(self.ResourceId, self.DateFrom, self.DateTo, self.BookingId, self._get_transaction_type_name())
+
+    def _get_transaction_type_name(self):
+        types = ['Add', 'Substract']
+        return types[int(self.TransactionType)]
 
     def get_by_bookingid(self, config, bookingid):
         config.logger.debug("Try to get holiday from booking with id %s " %bookingid)
@@ -412,7 +420,7 @@ class Api_Holiday(Api_Abstract_Model):
             print(self.__dict__)
             return self
         else:
-            return Exception("Multiple items found!")
+            raise Exception("Multiple items found!")
 
         return None
 
@@ -420,30 +428,61 @@ class Api_Holiday(Api_Abstract_Model):
         print("Trying to create a holiday item.")
         if self.ResourceId is None or self.ResourceId == '':
             raise Exception("A ResourceId is required.")
-        print("1")
+
         if self.DateFrom is None or self.DateFrom == '':
             raise Exception("A DateFrom is required.")
 
-        print("2")
         if self.Type is None or self.Type == '':
             raise Exception("A Type is required.")
 
-        print("3")
         if self.TransactionType is None or self.TransactionType == '':
             raise Exception("A TransactionType is required.")
 
-        print("4")
         if self.Status is None or self.Status == '':
             raise  Exception("A Status is required.")
 
-        print("5")
         if self.RoleId is None or self.RoleId == '':
             raise Exception("A RoleId is required.")
 
-        print("6")
         if self.Amount is None or self.Amount == '':
             raise Exception("An Amount is required.")
 
         print("Tests passed!")
         config.logger.debug("Tests passed, create it.")
         return super().create(config)
+
+
+class Api_PlanningDepartmentGroup(Api_Abstract_Model):
+    endpoint = 'planningdepartmentgroup'
+    def __init__(self):
+        self.ExternalId = ''
+        self.PlanningDepartmentId = ''
+        self.Name = ''
+        self.Sequence = ''
+        self.PlanningDepartmentGroupResourceIds = []
+        self.Id = ''
+
+    def __str__(self):
+        return "Planning Department Group: %s (Id: %s)" %(self.Name, self.Id)
+
+
+class Api_ContactPlanningGroup(Api_Abstract_Model):
+    endpoint = 'contactplanninggroup'
+    def __init__(self):
+        self.ContactId = ''
+        self.ContactFirstName = ''
+        self.ContactLastName = ''
+        self.GroupId = ''
+        self.GroupName = ''
+        self.GroupType = ''
+        self.From = ''
+        self.To = ''
+        self.ContactFullName = ''
+        self.Id = ''
+
+    def __str__(self):
+        return "Contact Planning Group: %s (Id: %s - %s)" %(self.GroupName, self.Id, self._get_type_name())
+
+    def _get_type_name(self):
+        types = ['Contact','Asset','Company','Location', 'HR']
+        return types[int(self.GroupType)]
