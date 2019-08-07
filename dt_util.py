@@ -71,3 +71,21 @@ def get_date_from_string(datestring):
     if datestring is not None:
         return datetime.datetime.strptime(datestring, '%Y-%m-%dT%H:%M:%S')
     return datestring
+
+def get_list_from_file(file, separator = None):
+    my_list_to_return = []
+
+    with open(file) as f:
+        content = f.readlines()
+    # you may also want to remove whitespace characters like `\n` at the end of each line
+    content = [x.strip() for x in content]
+
+    if separator is not None:
+        print("Your lines will be separated with a: '%s'" %separator)
+        for current_line in content:
+            my_new_list = current_line.split(separator)
+            my_list_to_return.append(my_new_list)
+    else:
+        my_list_to_return = content[:]
+
+    return my_list_to_return
