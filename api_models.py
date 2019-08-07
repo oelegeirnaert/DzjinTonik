@@ -21,6 +21,12 @@ class IdMustBeNull(Exception):
 class ItemDoesNotExist(Exception):
     pass
 
+class MultipleItemsFound(Exception):
+    pass
+
+class NothingFound(Exception):
+    pass
+
 class Api_Abstract_Model():
     def do_request(self, action, config, params=None):
 
@@ -58,7 +64,7 @@ class Api_Abstract_Model():
             return self
 
         if r.status_code == 404:
-            raise ItemDoesNotExist("A %s with this paramaters %s does not exist." %(type(self).__name__, params))
+            raise ItemDoesNotExist("A %s with these parameters %s does not exist." %(type(self).__name__, params))
 
         config.logger.info(r.text)
         raise RequestException("Your request was not successful...")
@@ -85,18 +91,26 @@ class Api_Abstract_Model():
         return self.do_request("post", config)
 
     @classmethod
-    def get_all(cls, config, paged_items = 0):
+    def get_multiple(cls, config, paged_items = 0, search_params = None):
+        if cls.endpoint is None:
+            raise EndpointRequired("Please provide an endpoint for %s" %cls.__name__())
         print(cls.endpoint)
         params = {
-            'pagesize' : paged_items
+            'pagesize' : paged_items,
         }
+        if search_params is not None:
+            params.update(search_params);
+
         request_endpoint = "%s%s" %(config.api_domain, cls.endpoint)
 
+        config.logger.debug("Connecting to %s with params: %s" %(request_endpoint, params))
         r = requests.get(request_endpoint, params=params, headers=config.api_headers)
         if r.status_code != 200:
-            return RequestException("Your request to get all the % items failed." %type(self).__name__)
+            return RequestException("Your request to get all the %s items failed." %type(self).__name__)
 
         items = json.loads(r.text)['PageItems']
+        if len(items)==0:
+            raise NothingFound("We couldn't find any object of type %s..." %cls.__name__)
         total_items = json.loads(r.text)['TotalCount']
         list = []
         for item in items:
@@ -172,6 +186,31 @@ class Api_Person(Api_Abstract_Model):
         self.Function= ''
         self.Merge= ''
         self.Id= ''
+
+    def __str__(self):
+        return("%s %s (Id: %s - ResourceID: %s - Shortname: %s)" %(self.FirstName, self.LastName, self.Id, self.ResourceId, self.ShortName))
+
+    def _get_first_last_name(self):
+        return "%s %s" %(self.FirstName, self.LastName)
+
+    @classmethod
+    def search_by_ResourceId(cls, config, id):
+
+        if id is None:
+            return IdRequired("We need a ResourceId in order to find your person.")
+
+        config.logger.debug("Searching resource in groupid: %s" %id)
+        params = {'ResourceId': id}
+        search_result, result_count = cls().get_multiple(config, search_params=params)
+
+        if len(search_result) == 0:
+            raise NothingFound("We couldn't find any person with id: %s" %id)
+        if len(search_result) > 1:
+            raise MultipleItemsFound("We've found multiple contacts while searching for one id (%s)..." %id)
+
+        return search_result[0]
+
+
 
 
 class Api_PlanningItem(Api_Abstract_Model):
@@ -486,3 +525,45 @@ class Api_ContactPlanningGroup(Api_Abstract_Model):
     def _get_type_name(self):
         types = ['Contact','Asset','Company','Location', 'HR']
         return types[int(self.GroupType)]
+
+
+class Api_PlanningDepartmentGroupResource(Api_Abstract_Model):
+    endpoint = 'planningdepartmentgroupresource'
+    def __init__(self):
+        self.ExternalId = ''
+        self.PlanningDepartmentGroupId = ''
+        self.ResourceId = ''
+        self.AssetId = ''
+        self.ContactId = ''
+        self.Name = ''
+        self.ResourceType = ''
+        self.Sequence = ''
+        self.DefaultRoleId = ''
+        self.DefaultRoleName = ''
+        self.ValidFrom = ''
+        self.ValidTo = ''
+        self.PlanningDepartmentGroupName = ''
+        self.ResourceInactiveFrom = ''
+        self.DefaultDepartment = ''
+        self.PlanningDepartmentName = ''
+        self.PlanningDepartmentId = ''
+        self.Id = ''
+
+    def __str__(self):
+        return "   %s) %s is in %s" %(self.Sequence, self.Name, self.PlanningDepartmentGroupName)
+
+    def _is_person(self):
+        return self.ResourceType == 0
+
+    def _is_asset(self):
+        return self.ResourceType == 1
+
+    @classmethod
+    def search_by_PlanningDepartmentGroupId(cls, config, id):
+
+        if id is None:
+            return IdRequired("We need a Planning Department Group Id in order to find your resources in this group.")
+
+        config.logger.debug("Searching resource in groupid: %s" %id)
+        params = {'PlanningDepartmentGroupId': id}
+        return cls().get_multiple(config, search_params=params)
