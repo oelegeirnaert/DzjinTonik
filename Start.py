@@ -66,7 +66,7 @@ def create_freelancers_from_file(config, from_person_id, a_file):
     copy_from_person = Person(config=config, id=from_person_id)
     copy_from_person.get_from_dt()
 
-    content = get_list_from_file(a_file, separator = ";")
+    content = dt_util.get_list_from_file(a_file, separator = ";")
 
     for current_line in content:
         unique_password = random_password_generator()
@@ -133,7 +133,7 @@ def get_all_holiday_approvers(config, file):
 
 def update_contacts_with_approver_from_file(config, file):
     db = config.mongodb_database
-    content = get_list_from_file(file, separator=";")
+    content = dt_util.get_list_from_file(file, separator=";")
 
     for current_item in content:
         current_contact = Contact(config, Id=current_item[0])
@@ -147,23 +147,7 @@ def update_contacts_with_approver_from_file(config, file):
             db.contactapprover.update_one({'Id':ca.Id}, {'$set':ca.__dict__}, upsert=True)
         #sys.exit()
 
-def get_list_from_file(file, separator = None):
-    my_list_to_return = []
 
-    with open(file) as f:
-        content = f.readlines()
-    # you may also want to remove whitespace characters like `\n` at the end of each line
-    content = [x.strip() for x in content]
-
-    if separator is not None:
-        print("Your lines will be separated with a: '%s'" %separator)
-        for current_line in content:
-            my_new_list = current_line.split(separator)
-            my_list_to_return.append(my_new_list)
-    else:
-        my_list_to_return = content[:]
-
-    return my_list_to_return
 
 
 def SetHRGroupsForContactsFromFile(config, file):
@@ -172,7 +156,7 @@ def SetHRGroupsForContactsFromFile(config, file):
     print("Set HR Groups")
 
 
-    content = get_list_from_file(file, separator=";")
+    content = dt_util.get_list_from_file(file, separator=";")
 
     for current_item in content:
         current_mongo_hr_group = MongoHRGroup(current_item)
@@ -296,7 +280,7 @@ def Delete_Old_BloxNumbers(config, sql_file):
             c.send_to_dt()
 
 def SetExecutivesFromFile(config, input_file):
-    my_list = get_list_from_file(input_file, separator = ";")
+    my_list = dt_util.get_list_from_file(input_file, separator = ";")
     url = config.domain + '/Nominal/Read'
     for current_item in my_list:
 
@@ -351,7 +335,7 @@ def SetExecutivesFromFile(config, input_file):
 
 def update_user_password_from_departement_group_via_sql(config, sqlfile, file):
     db = config.mongodb_database
-    already_reset = get_list_from_file(file, separator = None)
+    already_reset = dt_util.get_list_from_file(file, separator = None)
     contacts_to_reset = dt_util.get_sql_list_from_file(config, sqlfile)
     contactids_to_reset = []
     for row in contacts_to_reset:
@@ -385,7 +369,7 @@ def update_user_password_from_departement_group_via_sql(config, sqlfile, file):
             db.mailing2.update_one({'Id':mailing.Id}, {'$set':mailing.__dict__}, upsert=True)
 
 def SetExecutivesFromFileViaAPI(config, file):
-    my_list = get_list_from_file(file, separator=None)
+    my_list = dt_util.get_list_from_file(file, separator=None)
 
     print(my_list)
     my_nominal_endpoint = ("%s%s" %(config.api_domain, "nominal"))
@@ -467,7 +451,7 @@ def SetExecutivesFromFileViaAPI(config, file):
 
 
 def UpdateShifts(config = None, file = None, minutes_to_add=None):
-    my_list = get_list_from_file(file, separator = ";")
+    my_list = dt_util.get_list_from_file(file, separator = ";")
     for item in my_list:
         current_booking_id = item[0]
         cv = CategoryValue(config, current_booking_id)
@@ -811,7 +795,7 @@ def change_planningitems_for_production(config, from_production_id, to_productio
     if answer == False:
         sys.exit()
 
-    my_list = Api_PlanningItem.get_all(config,0)
+    my_list = Api_PlanningItem.get_multiple(config,0)
     list_to_change = []
     list_of_failures = []
 
@@ -999,21 +983,21 @@ def Restore_Holidays(config, sqlfile, update_in_dt, update_all):
 
 
 def Get_All_Productions(config):
-    my_list, count = Api_Production.get_all(config)
+    my_list, count = Api_Production.get_multiple(config)
     print("We've found %s productions" %count)
     for item in my_list:
         print(item.Name)
 
 
 def Get_All_Nominals(config):
-    my_list, count = Api_Nominal.get_all(config)
+    my_list, count = Api_Nominal.get_multiple(config)
     print("We've found %s nominals." %count)
     for item in my_list:
         print(item)
 
 
 def Get_All_ContactPlanningGroups(config):
-    all_contact_planning_groups, count = Api_ContactPlanningGroup.get_all(config)
+    all_contact_planning_groups, count = Api_ContactPlanningGroup.get_multiple(config)
     print("We've found %s contactplanninggroups." %count)
     for item in all_contact_planning_groups:
         if item._get_type_name() != 'HR':
@@ -1022,7 +1006,7 @@ def Get_All_ContactPlanningGroups(config):
 
 
 def Get_All_Holidays(config):
-    all_holidays, count = Api_Holiday.get_all(config)
+    all_holidays, count = Api_Holiday.get_multiple(config)
     for item in all_holidays:
         print(item)
 
@@ -1044,7 +1028,7 @@ def Update_Journalisten_PlanningDepartmentGroup(config, new_group_id, update_in_
     else:
         paged_items = 20000
 
-    all_planning_department_groups, planning_department_groups_count = Api_PlanningDepartmentGroup().get_all(config, paged_items = paged_items)
+    all_planning_department_groups, planning_department_groups_count = Api_PlanningDepartmentGroup().get_multiple(config, paged_items = paged_items)
     all_journalist_group_ids = []
     all_journalist_groups = []
 
@@ -1075,7 +1059,7 @@ def Update_Journalisten_PlanningDepartmentGroup(config, new_group_id, update_in_
         print("Ok, we'll cancel your request!")
         sys.exit()
 
-    all_planning_items, planning_items_count = Api_PlanningItem().get_all(config, paged_items=paged_items)
+    all_planning_items, planning_items_count = Api_PlanningItem().get_multiple(config, paged_items=paged_items)
     for item in all_planning_items:
         #INFO:config:{"Message":"An error has occurred.","ExceptionMessage":"Invalid ID '0' for property 'PlanningType'.","ExceptionType":"iBoris.Unicorn.InvalidMappedDomainObjectIdException","StackTrace":null,"InnerException":{"Message":"An error has occurred.","ExceptionMessage":"Cannot get an entity in insert mode.","ExceptionType":"System.InvalidOperationException","StackTrace":"   at iBoris.Unicorn.Persister`1.get_Entity()"}}
         if item.PlanningTypeId == 0:
@@ -1095,8 +1079,55 @@ def Update_Journalisten_PlanningDepartmentGroup(config, new_group_id, update_in_
 
         #sys.exit()
 
+def Set_Sorting_For_Journalisten(config, PlanningDepartmentGroupId, file_with_sorting, update_in_dt=False, update_all=False):
+    if not isinstance(PlanningDepartmentGroupId, int):
+        raise Exception("Please provide an integer.")
+
+    #Provided by business an excel with 'Order', 'ShortName', 'FullName' > Concerted to CSV
+    user_sorting = dt_util.get_list_from_file(file_with_sorting, separator = ";")
+
+    #Load all persons to get their ResourceId based on their full name
+    all_persons, count = Api_Person.get_multiple(config, paged_items=10)
+    print("All persons downloaded...")
+    for current_user in user_sorting:
+        #Yes, checking on a full name is not the way to go,
+        #but for this one-time request its ok because I checked if no duplicate names are were working in the this group.
+        #Beter way of working is asking the business to provide emailadresses instead of FullNames
+        current_full_name = current_user[2]
+        for person in all_persons:
+            if person is not None and current_full_name is not None and person._get_first_last_name().upper() == current_full_name.upper():
+                user_sorting[user_sorting.index(current_user)][1] = person.ResourceId
+                break
+
+    #Now we need to load the respective Department Group Id with all the respective resources to set their orderning.
+    print("Downloading all resource in Department Group with ID: %s" %PlanningDepartmentGroupId)
+    try:
+        all_resources_in_deparmentgroup, count = Api_PlanningDepartmentGroupResource.search_by_PlanningDepartmentGroupId(config, PlanningDepartmentGroupId)
+        print("We've found %s resources in the DepartmentGroup %s" %(count,all_resources_in_deparmentgroup[1].PlanningDepartmentGroupName))
+    except Exception as e:
+        print(e)
+        sys.exit()
+
+    for resource in all_resources_in_deparmentgroup:
+        if resource._is_person():
+            for current_person in user_sorting:
+                if current_person[1] == resource.ResourceId:
+                    print("MATCH")
+                    print(resource.Sequence)
+                    resource.Sequence = current_person[0]
+                    if update_in_dt:
+                        resource.update(config)
+                    print(resource.Sequence)
+
+                    if not update_all:
+                        answer = dt_util.ask_yes_no_question("Go to next?")
+                        if not answer:
+                            sys.exit()
+            current_person = Api_Person().search_by_ResourceId(config, resource.ResourceId)
+
+
 #my_config = ProgramConfig("SetHrGroup_WithTV")
-#x = get_list_from_file("INPUT_FILES/contacts_with_approver.txt", separator=";")
+#x = dt_util.get_list_from_file("INPUT_FILES/contacts_with_approver.txt", separator=";")
 #for i in x:
     #print(i[1])
 #get_all_persons_and_store_in_file(my_config, "OUTPUT_FILES/ids.txt")
@@ -1144,7 +1175,13 @@ else:
 #config, new_group_id, update_in_dt, update_all
 
 #We only have the PG with ID: 126 in PROD, to in TEST take another
+'''
 if my_config.environment.upper() == 'PROD':
     Update_Journalisten_PlanningDepartmentGroup(my_config, 126, True, True)
 else:
     Update_Journalisten_PlanningDepartmentGroup(my_config, 20, True, True)
+'''
+if my_config.environment.upper() == 'PROD':
+    Set_Sorting_For_Journalisten(my_config, 126, 'INPUT_FILES/sorting_journalisten.csv', True, True)
+else: #66
+    Set_Sorting_For_Journalisten(my_config, 127, 'INPUT_FILES/sorting_journalisten.csv', True, True)
