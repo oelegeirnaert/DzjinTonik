@@ -14,6 +14,7 @@ class ProgramConfig(object):
         log_filename = "Logs/%s-%s.log" %(logfileName, today)
         logging.basicConfig(filename=log_filename, level=loglevel)
         logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+        self.loglevel = loglevel
         self.logger = logging.getLogger(__name__)
 
         if show_log:
