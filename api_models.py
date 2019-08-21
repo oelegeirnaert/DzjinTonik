@@ -278,6 +278,9 @@ class Api_PlanningItem(Api_Abstract_Model):
     def __str__(self):
         return "PIid: %s for production %s on %s created by %s" %(str(self.Id), self.ProductionId, self.DateFrom, self.CreateUser)
 
+    def get_break_info(self):
+        return ("BreakTime: %s - ActualBreak: %s" %(self.BreakTime, self.ActualBreak))
+
 
 class Api_BookingItem(Api_Abstract_Model):
     endpoint = 'booking'
@@ -315,6 +318,12 @@ class Api_BookingItem(Api_Abstract_Model):
         self.UpdateUser=''
         self.UpdateTimestamp=''
         self.Id=''
+
+    def __str__(self):
+        return ("Booking for resourceid: %s (id: %s - planningitemid: %s) " %(self.ResourceId, self.Id, self.PlanningItemId))
+
+    def get_break_info(self):
+        return("Initial Breaktime: %s - Actual Break: %s -  BreakTime: %s" %(self.InitialBreakTime, self.ActualBreak, self.BreakTime))
 
 
 class Api_Asset(Api_Abstract_Model):
@@ -568,3 +577,46 @@ class Api_PlanningDepartmentGroupResource(Api_Abstract_Model):
         params = {'PlanningDepartmentGroupId': id}
         return cls().get_multiple(config, search_params=params)
 
+
+class Api_ModificationLog(Api_Abstract_Model):
+    endpoint='modificationlog'
+    def __init__(self):
+        self.Type=''
+        self.EntityType=''
+        self.EntityId=''
+        self.Remarks=''
+        self.CreateUser=''
+        self.CreateTimestamp=''
+        self.UpdateUser=''
+        self.UpdateTimestamp=''
+        self.Id=''
+
+    def _get_type_name(self):
+        if self.Type == 0:
+            return "create"
+        elif self.Type ==  2:
+            return "update"
+        elif self.Type == 3:
+            return "delete"
+        else:
+            raise Exception("Unknown type...")
+
+    def _get_entity_type_name(self):
+        if self.EntityType == 0:
+            return "booking"
+        else:
+            raise Exception("Unknown entitytype...")
+
+    def __str__(self):
+        return "%s with id %s has been %sd" %(self._get_entity_type_name(), self.EntityId, self._get_type_name())
+
+    @classmethod
+    def get_from_date(cls, config, a_date):
+        if len(str(a_date)) != 8:
+            raise Exception("This is not a right length for a date... Format: YYYYMMDD")
+
+        if not isinstance(a_date, int):
+            raise Exception("Your date should only contain numbers.")
+
+        params = {'from': a_date}
+        return cls().get_multiple(config, search_params = params)
