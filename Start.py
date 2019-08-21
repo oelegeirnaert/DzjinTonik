@@ -1126,6 +1126,31 @@ def Set_Sorting_For_Journalisten(config, PlanningDepartmentGroupId, file_with_so
             current_person = Api_Person().search_by_ResourceId(config, resource.ResourceId)
 
 
+def get_modification_log_from(config, a_date):
+    list = []
+    list, count = Api_ModificationLog().get_from_date(config, a_date)
+    print("Searching from %s, we've found %s log items..." %(a_date, count))
+
+    created_items_found = []
+    updated_items_found = []
+    deleted_items_found = []
+
+     #The type of the modification (0 – Create, 2 – Update, 3 – Delete)
+    for mod in list:
+        if mod.Type == 0:
+            created_items_found.append(mod)
+        if mod.Type == 2:
+            updated_items_found.append(mod)
+        if mod.Type == 3:
+            deleted_items_found.append(mod)
+
+    print("""
+        Created Items: %s
+        Updated Items: %s
+        Deleted Items: %s
+    """ %(len(created_items_found), len(updated_items_found), len(deleted_items_found)))
+
+
 #my_config = ProgramConfig("SetHrGroup_WithTV")
 #x = dt_util.get_list_from_file("INPUT_FILES/contacts_with_approver.txt", separator=";")
 #for i in x:
@@ -1139,7 +1164,7 @@ def Set_Sorting_For_Journalisten(config, PlanningDepartmentGroupId, file_with_so
 #get_all_holiday_approvers(my_config, "OUTPUT_FILES/holiday_approvers.txt")
 #update_contacts_with_approver_from_file(my_config, "INPUT_FILES/contacts_with_approver.txt")
 
-my_config = ProgramConfig("Get all contact planning groups", "test", logging.DEBUG, True)
+my_config = ProgramConfig("Get all contact planning groups", "prod", logging.DEBUG, True)
 #SetHRGroupsForContactsFromFile(my_config, "INPUT_FILES/set_hr_groups_20190329.csv" )
 #SetCompanyFromFile(my_config, "QUERIES/set_company.sql")
 #Delete_Old_BloxNumbers(my_config, "QUERIES/remove_old_blox.sql")
@@ -1153,6 +1178,9 @@ my_config = ProgramConfig("Get all contact planning groups", "test", logging.DEB
 #print(random_password_generator())
 #WolfTechIntegrationBetterPerformance(my_config, "QUERIES/wolftechplanboards.sql", 20190501)
 #Change_Shift_Times_MCR(my_config, [172, 173], '01-07-2019')
+
+#config, shift_ids, change_from, update_all = False, update_in_dt = False
+
 
 '''
 if my_config.environment.upper() == 'PROD':
@@ -1181,7 +1209,12 @@ if my_config.environment.upper() == 'PROD':
 else:
     Update_Journalisten_PlanningDepartmentGroup(my_config, 20, True, True)
 '''
+
+'''
 if my_config.environment.upper() == 'PROD':
     Set_Sorting_For_Journalisten(my_config, 126, 'INPUT_FILES/sorting_journalisten.csv', True, True)
 else: #66
     Set_Sorting_For_Journalisten(my_config, 127, 'INPUT_FILES/sorting_journalisten.csv', True, True)
+'''
+
+get_modification_log_from(my_config, 20190201)
