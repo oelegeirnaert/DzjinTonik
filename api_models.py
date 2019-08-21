@@ -567,3 +567,4 @@ class Api_PlanningDepartmentGroupResource(Api_Abstract_Model):
         config.logger.debug("Searching resource in groupid: %s" %id)
         params = {'PlanningDepartmentGroupId': id}
         return cls().get_multiple(config, search_params=params)
+
